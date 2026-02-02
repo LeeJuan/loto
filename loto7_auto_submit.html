@@ -91,6 +91,8 @@
       padding: 15px;
       border-radius: 10px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
     .result-card.has-win {
       background: linear-gradient(135deg, #ffd700 0%, #ffeb3b 100%);
@@ -108,6 +110,38 @@
     .result-card .prize {
       font-size: 11px;
       color: #888;
+    }
+    .result-card .mini-scratch {
+      position: relative;
+      width: 70px;
+      height: 35px;
+      margin: 5px auto;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .result-card .mini-scratch-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+      visibility: hidden;
+    }
+    .result-card .mini-scratch-content.ready {
+      visibility: visible;
+    }
+    .result-card .mini-scratch-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="%23c0c0c0" stroke="%23888" stroke-width="2"/></svg>') 12 12, crosshair;
     }
     .winning-tickets {
       margin-top: 15px;
@@ -505,13 +539,11 @@
       mainNumbersData = mainNumbers;
       prizesData = prizes;
 
-      // 총 당첨금 계산
-      let totalPrize = 0;
-      let totalWinners = 0;
-      for (let rank = 1; rank <= 6; rank++) {
-        totalPrize += results[rank].length * prizes[rank];
-        totalWinners += results[rank].length;
-      }
+      // 등수별 갯수 계산
+      const highPrizeCount = results[1].length + results[2].length + results[3].length;
+      const count4 = results[4].length;
+      const count5 = results[5].length;
+      const count6 = results[6].length;
 
       let html = '<div class="results">';
 
@@ -520,43 +552,55 @@
         <strong>당첨번호:</strong> ${mainNumbers.join(' - ')} + <span style="color:#ff9800; font-weight:bold;">${bonusNumbers.join(', ')}</span>
       </div>`;
 
-      // 요약 카드 (모두 스크래치로 확인)
+      // 요약 카드 (각 카드에 미니 스크래치)
       html += '<div class="result-summary">';
 
-      // 1~3등 고액당첨 카드 - 갯수 숨김
+      // 1~3등 고액당첨 카드
       html += `<div class="result-card" style="background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%); color: white;">
         <h4 style="color:white;">🏆 1~3등</h4>
-        <div class="count" style="color:white;">?장</div>
-        <div class="prize" style="color:rgba(255,255,255,0.9);">스크래치!</div>
+        <div class="mini-scratch" id="mini-scratch-high">
+          <div class="mini-scratch-content" style="background: linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%); color: #4a148c;">${highPrizeCount}장</div>
+          <canvas class="mini-scratch-canvas" id="mini-canvas-high" width="70" height="35"></canvas>
+        </div>
+        <div class="prize" style="color:rgba(255,255,255,0.9);">73만~6억엔</div>
       </div>`;
 
-      // 4등 - 갯수 숨김
+      // 4등
       html += `<div class="result-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">
-        <h4 style="color:white;">4등</h4>
-        <div class="count" style="color:white;">?장</div>
-        <div class="prize" style="color:rgba(255,255,255,0.9);">스크래치!</div>
+        <h4 style="color:white;">🎯 4등</h4>
+        <div class="mini-scratch" id="mini-scratch-4">
+          <div class="mini-scratch-content" style="background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%); color: #e65100;">${count4}장</div>
+          <canvas class="mini-scratch-canvas" id="mini-canvas-4" width="70" height="35"></canvas>
+        </div>
+        <div class="prize" style="color:rgba(255,255,255,0.9);">9,100엔</div>
       </div>`;
 
-      // 5등 - 갯수 숨김
+      // 5등
       html += `<div class="result-card" style="background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white;">
-        <h4 style="color:white;">5등</h4>
-        <div class="count" style="color:white;">?장</div>
-        <div class="prize" style="color:rgba(255,255,255,0.9);">스크래치!</div>
+        <h4 style="color:white;">🎫 5등</h4>
+        <div class="mini-scratch" id="mini-scratch-5">
+          <div class="mini-scratch-content" style="background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%); color: #1b5e20;">${count5}장</div>
+          <canvas class="mini-scratch-canvas" id="mini-canvas-5" width="70" height="35"></canvas>
+        </div>
+        <div class="prize" style="color:rgba(255,255,255,0.9);">1,400엔</div>
       </div>`;
 
-      // 6등 - 갯수 숨김
+      // 6등
       html += `<div class="result-card" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white;">
-        <h4 style="color:white;">6등</h4>
-        <div class="count" style="color:white;">?장</div>
-        <div class="prize" style="color:rgba(255,255,255,0.9);">스크래치!</div>
+        <h4 style="color:white;">🎟️ 6등</h4>
+        <div class="mini-scratch" id="mini-scratch-6">
+          <div class="mini-scratch-content" style="background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%); color: #0d47a1;">${count6}장</div>
+          <canvas class="mini-scratch-canvas" id="mini-canvas-6" width="70" height="35"></canvas>
+        </div>
+        <div class="prize" style="color:rgba(255,255,255,0.9);">1,000엔</div>
       </div>`;
 
       html += '</div>';
 
-      // 전체 스크래치 카드 섹션
+      // 당첨 티켓 상세 스크래치 카드 섹션
       html += `<div class="scratch-section">
-        <h4>🎰 당첨 확인 스크래치 카드</h4>
-        <p style="text-align:center; color:#aaa; font-size:12px; margin-bottom:15px;">카드를 긁어서 당첨 여부를 확인하세요!</p>
+        <h4>🎰 당첨 티켓 상세 확인</h4>
+        <p style="text-align:center; color:#aaa; font-size:12px; margin-bottom:15px;">카드를 긁어서 당첨 티켓을 확인하세요!</p>
         <div class="scratch-cards" id="scratch-cards-container">`;
 
       // 첫 번째 스크래치 카드 (또는 꽝)
@@ -567,13 +611,140 @@
         <p id="scratch-progress" style="text-align:center; color:#aaa; font-size:12px; margin-top:10px;">1 / ?</p>
       </div>`;
 
-      // DOM 업데이트 후 첫 번째 캔버스 초기화
-      setTimeout(() => {
-        initScratchCard(0);
-      }, 100);
-
       html += '</div>';
       resultsDiv.innerHTML = html;
+
+      // DOM 업데이트 후 미니 스크래치 캔버스 초기화
+      setTimeout(() => {
+        initMiniScratchCard('mini-canvas-high', 'mini-scratch-high');
+        initMiniScratchCard('mini-canvas-4', 'mini-scratch-4');
+        initMiniScratchCard('mini-canvas-5', 'mini-scratch-5');
+        initMiniScratchCard('mini-canvas-6', 'mini-scratch-6');
+        initScratchCard(0);
+      }, 100);
+    }
+
+    // 미니 스크래치 카드 초기화 (갯수 표시용)
+    function initMiniScratchCard(canvasId, containerId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      let isDrawing = false;
+      let lastX = 0;
+      let lastY = 0;
+
+      // 은색 스크래치 표면 그리기
+      const gradient = ctx.createLinearGradient(0, 0, 70, 35);
+      gradient.addColorStop(0, '#c0c0c0');
+      gradient.addColorStop(0.5, '#d8d8d8');
+      gradient.addColorStop(1, '#b0b0b0');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 70, 35);
+
+      // ? 표시
+      ctx.fillStyle = '#666';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('?장', 35, 18);
+
+      // 긁기 설정
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = 18;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      function getPosition(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        if (e.touches) {
+          return {
+            x: (e.touches[0].clientX - rect.left) * scaleX,
+            y: (e.touches[0].clientY - rect.top) * scaleY
+          };
+        }
+        return {
+          x: (e.clientX - rect.left) * scaleX,
+          y: (e.clientY - rect.top) * scaleY
+        };
+      }
+
+      function startDrawing(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        isDrawing = true;
+        const pos = getPosition(e);
+        lastX = pos.x;
+        lastY = pos.y;
+      }
+
+      function draw(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const pos = getPosition(e);
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+
+        lastX = pos.x;
+        lastY = pos.y;
+
+        // 긁은 비율 체크
+        checkMiniScratchPercent(canvas, canvasId);
+      }
+
+      function stopDrawing() {
+        isDrawing = false;
+      }
+
+      // 마우스 이벤트
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseleave', stopDrawing);
+
+      // 터치 이벤트
+      canvas.addEventListener('touchstart', startDrawing, { passive: false });
+      canvas.addEventListener('touchmove', draw, { passive: false });
+      canvas.addEventListener('touchend', stopDrawing);
+
+      // 캔버스 초기화 완료 후 콘텐츠 표시
+      const container = document.getElementById(containerId);
+      if (container) {
+        const content = container.querySelector('.mini-scratch-content');
+        if (content) {
+          content.classList.add('ready');
+        }
+      }
+    }
+
+    // 미니 스크래치 긁은 비율 체크
+    function checkMiniScratchPercent(canvas, canvasId) {
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imageData.data;
+      let transparentPixels = 0;
+
+      for (let i = 3; i < pixels.length; i += 4) {
+        if (pixels[i] === 0) {
+          transparentPixels++;
+        }
+      }
+
+      const totalPixels = pixels.length / 4;
+      const percent = (transparentPixels / totalPixels) * 100;
+
+      if (percent > 50) {
+        canvas.style.opacity = '0';
+        canvas.style.transition = 'opacity 0.3s ease';
+      }
     }
 
     // 스크래치 카드 HTML 생성
