@@ -1283,18 +1283,12 @@
           4: '#ff9800',
           5: '#4caf50'
         };
-        const rankBgColors = {
-          1: 'linear-gradient(135deg, #fff9c4 0%, #fff176 100%)',
-          2: 'linear-gradient(135deg, #fff9c4 0%, #fff176 100%)',
-          3: 'linear-gradient(135deg, #fff9c4 0%, #fff176 100%)',
-          4: 'linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%)',
-          5: 'linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%)'
-        };
+        const defaultBgColor = 'linear-gradient(135deg, #fff9c4 0%, #fff176 100%)';
 
         // 당첨이 없거나 인덱스를 초과한 경우 꽝
         if (!allScratchTickets || allScratchTickets.length === 0 || idx >= allScratchTickets.length) {
           return `<div class="scratch-card" id="scratch-card-${idx}">
-            <div class="scratch-content" style="background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);">
+            <div class="scratch-content" style="background: ${defaultBgColor};">
               <div class="rank-text" style="font-size: 36px;">꽝...</div>
               <div class="prize" style="color:#7f8c8d; font-weight:bold;">다음 기회에!</div>
               <div class="ticket-info" style="color:#95a5a6;">당첨 없음</div>
@@ -1314,7 +1308,7 @@
         }).join(', ');
 
         return `<div class="scratch-card" id="scratch-card-${idx}" data-rank="${winRank}">
-          <div class="scratch-content" style="background: ${rankBgColors[winRank]};">
+          <div class="scratch-content" style="background: ${defaultBgColor};">
             <div class="rank-text">${rankNames[winRank]}</div>
             <div class="prize" style="color:${rankColors[winRank]}; font-weight:bold;">${rankPrizes[winRank]}</div>
             <div class="ticket-info">#${win.index}번 티켓</div>
