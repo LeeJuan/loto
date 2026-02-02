@@ -1,0 +1,1350 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>로또6 500장 자동 제출</title>
+    <style>
+      body {
+        font-family: "Malgun Gothic", sans-serif;
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 20px;
+        background: #f0f0f0;
+      }
+      h1 {
+        color: #d32f2f;
+        text-align: center;
+      }
+      .batch {
+        background: white;
+        padding: 20px;
+        margin: 15px 0;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .batch h3 {
+        margin-top: 0;
+        color: #1976d2;
+      }
+      button {
+        background: #d32f2f;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+      }
+      button:hover {
+        background: #b71c1c;
+      }
+      button.done {
+        background: #4caf50;
+      }
+      .warning {
+        background: #fff3e0;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border-left: 5px solid #ff9800;
+      }
+      .info {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .tickets {
+        font-family: monospace;
+        font-size: 11px;
+        max-height: 200px;
+        overflow-y: auto;
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+      }
+      .ticket-line {
+        padding: 2px 0;
+      }
+      .progress {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .progress-item {
+        padding: 8px 15px;
+        background: #e0e0e0;
+        border-radius: 20px;
+        font-size: 14px;
+      }
+      .progress-item.done {
+        background: #c8e6c9;
+        color: #2e7d32;
+      }
+      /* 당첨 확인 스타일 */
+      .check-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        color: white;
+      }
+      .check-section h2 {
+        margin-top: 0;
+        color: white;
+      }
+      .number-input {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 15px 0;
+      }
+      .number-input input {
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+        border: 2px solid white;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.9);
+        color: #333;
+      }
+      .number-input input.bonus {
+        border-color: #ffd700;
+        background: #fff9c4;
+      }
+      .number-input label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 12px;
+      }
+      .check-btn {
+        background: #ffd700;
+        color: #333;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+      .check-btn:hover {
+        background: #ffeb3b;
+      }
+      .results {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+        color: #333;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      .result-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .result-card {
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+      }
+      .result-card.has-win {
+        background: linear-gradient(135deg, #ffd700 0%, #ffeb3b 100%);
+      }
+      .result-card.high-prize {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+      .result-card.high-prize h4 {
+        color: white;
+      }
+      .result-card.high-prize .count {
+        color: white;
+      }
+      .result-card.high-prize .prize {
+        color: rgba(255,255,255,0.9);
+      }
+      .result-card h4 {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+      }
+      .result-card .count {
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+      }
+      .result-card .prize {
+        font-size: 11px;
+        color: #888;
+      }
+      .winning-tickets {
+        margin-top: 15px;
+      }
+      .winning-ticket {
+        background: #e8f5e9;
+        padding: 10px 15px;
+        margin: 5px 0;
+        border-radius: 8px;
+        border-left: 4px solid #4caf50;
+      }
+      .winning-ticket .rank {
+        font-weight: bold;
+        color: #d32f2f;
+      }
+      .winning-ticket .numbers {
+        font-family: monospace;
+      }
+      .winning-ticket .matched {
+        color: #d32f2f;
+        font-weight: bold;
+      }
+      .total-prize {
+        background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin-top: 15px;
+      }
+      .total-prize h3 {
+        margin: 0;
+        font-size: 16px;
+      }
+      .total-prize .amount {
+        font-size: 32px;
+        font-weight: bold;
+      }
+      /* 스크래치 카드 스타일 */
+      .scratch-section {
+        margin-top: 20px;
+        padding: 20px;
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 15px;
+      }
+      .scratch-section h4 {
+        color: #ffd700;
+        margin-top: 0;
+        text-align: center;
+      }
+      .scratch-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+      }
+      .scratch-card {
+        width: 280px;
+        height: 120px;
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        touch-action: none;
+      }
+      .scratch-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #fff9c4 0%, #fff176 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        box-sizing: border-box;
+        visibility: hidden;
+      }
+      .scratch-content.ready {
+        visibility: visible;
+      }
+      .scratch-content .rank-text {
+        font-size: 24px;
+        font-weight: bold;
+        color: #d32f2f;
+      }
+      .scratch-content .ticket-info {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+      }
+      .scratch-content .numbers-text {
+        font-family: monospace;
+        font-size: 14px;
+        margin-top: 8px;
+        color: #333;
+      }
+      .scratch-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="%23c0c0c0" stroke="%23888" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="%23fff" opacity="0.5"/></svg>') 16 16, crosshair;
+      }
+      .reveal-all-btn {
+        display: block;
+        margin: 15px auto 0;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+      }
+      .reveal-all-btn:hover {
+        background: #c0392b;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎯 로또6 500장 자동 제출</h1>
+
+    <div class="warning">
+      <strong>⚠️ 중요!</strong><br />
+      1. 먼저
+      <a href="https://takarakuji.rakuten.co.jp/loto/loto6/" target="_blank"
+        >라쿠텐 로또6 페이지</a
+      >에서 <b>로그인</b> 하세요<br />
+      2. 로그인 후 아래 버튼 클릭 → 새 탭에서 결제 확인<br />
+      3. 총 10회 반복 (50장 × 10 = 500장 = 100,000원)
+    </div>
+
+    <div class="info">
+      <strong>📊 일본 전문가 기준 100% 충족 전략</strong><br />
+      合計 95-170: 100% | 偶奇 2:4~4:2: 100% | 引っ張り: 78.4% | 連続数字: 52.2%
+    </div>
+
+    <!-- 당첨 확인 섹션 -->
+    <div class="check-section">
+      <h2>🎰 당첨 확인</h2>
+      <p>당첨번호를 입력하고 확인 버튼을 누르세요</p>
+      <div class="number-input">
+        <label>본숫자1<input type="number" id="num1" min="1" max="43" placeholder=""></label>
+        <label>본숫자2<input type="number" id="num2" min="1" max="43" placeholder=""></label>
+        <label>본숫자3<input type="number" id="num3" min="1" max="43" placeholder=""></label>
+        <label>본숫자4<input type="number" id="num4" min="1" max="43" placeholder=""></label>
+        <label>본숫자5<input type="number" id="num5" min="1" max="43" placeholder=""></label>
+        <label>본숫자6<input type="number" id="num6" min="1" max="43" placeholder=""></label>
+        <label>보너스<input type="number" id="bonus" min="1" max="43" placeholder="" class="bonus"></label>
+      </div>
+      <button class="check-btn" onclick="checkWinning()">🔍 당첨 확인하기</button>
+      <div id="results"></div>
+    </div>
+
+    <div class="progress" id="progress"></div>
+
+    <div id="batches"></div>
+    2 - 23 - 26 - 29 - 33 - 35 24,29,40
+    <script>
+      const allTickets = [
+        [6, 19, 23, 29, 33, 36],
+        [5, 10, 20, 23, 29, 36],
+        [1, 6, 20, 23, 33, 35],
+        [5, 22, 24, 29, 33, 35],
+        [10, 19, 22, 24, 29, 36],
+        [1, 20, 26, 29, 33, 36],
+        [6, 11, 24, 26, 33, 36],
+        [1, 11, 20, 24, 29, 35],
+        [6, 11, 20, 29, 36, 43],
+        [2, 23, 26, 29, 33, 35],
+        [1, 6, 24, 29, 33, 43],
+        [2, 20, 22, 24, 35, 43],
+        [2, 5, 29, 33, 36, 43],
+        [6, 18, 22, 26, 33, 35],
+        [6, 18, 20, 23, 26, 29],
+        [1, 6, 10, 22, 33, 36],
+        [10, 20, 24, 26, 29, 43],
+        [6, 19, 24, 26, 29, 35],
+        [6, 10, 23, 29, 35, 43],
+        [2, 11, 20, 23, 33, 36],
+        [5, 10, 18, 23, 33, 35],
+        [1, 10, 22, 24, 35, 42],
+        [5, 10, 19, 29, 35, 40],
+        [1, 10, 23, 29, 33, 42],
+        [5, 11, 24, 29, 36, 41],
+        [2, 19, 22, 29, 35, 42],
+        [1, 14, 24, 26, 33, 35],
+        [8, 20, 23, 29, 33, 43],
+        [6, 10, 23, 26, 33, 40],
+        [2, 10, 19, 26, 33, 36],
+        [2, 6, 19, 22, 24, 33],
+        [5, 10, 13, 24, 36, 43],
+        [6, 11, 22, 24, 32, 35],
+        [11, 14, 19, 24, 29, 33],
+        [1, 10, 20, 28, 36, 43],
+        [5, 10, 20, 22, 24, 41],
+        [10, 19, 24, 33, 35, 43],
+        [1, 5, 23, 28, 33, 36],
+        [2, 6, 20, 26, 33, 43],
+        [1, 6, 20, 22, 29, 42],
+        [3, 11, 22, 29, 33, 36],
+        [5, 18, 20, 29, 35, 43],
+        [2, 5, 10, 24, 26, 35],
+        [6, 13, 19, 23, 35, 40],
+        [1, 20, 22, 24, 31, 33],
+        [10, 13, 22, 24, 26, 33],
+        [5, 17, 20, 23, 35, 40],
+        [6, 11, 18, 23, 30, 36],
+        [5, 11, 20, 29, 33, 40],
+        [5, 16, 20, 22, 33, 36],
+        [3, 18, 23, 26, 33, 36],
+        [11, 20, 22, 33, 35, 42],
+        [5, 14, 23, 29, 35, 42],
+        [11, 17, 23, 26, 29, 36],
+        [2, 11, 24, 26, 29, 32],
+        [2, 6, 13, 23, 36, 43],
+        [5, 17, 20, 24, 26, 36],
+        [10, 20, 23, 26, 35, 42],
+        [1, 16, 20, 23, 29, 40],
+        [7, 20, 23, 26, 28, 36],
+        [2, 13, 19, 24, 29, 43],
+        [7, 22, 24, 33, 36, 43],
+        [1, 6, 19, 24, 36, 38],
+        [6, 10, 19, 36, 40, 43],
+        [10, 17, 23, 33, 36, 43],
+        [5, 10, 13, 22, 29, 42],
+        [4, 19, 22, 29, 33, 40],
+        [2, 11, 19, 29, 36, 40],
+        [5, 17, 19, 29, 36, 42],
+        [6, 8, 11, 33, 35, 43],
+        [1, 20, 23, 27, 31, 36],
+        [1, 14, 23, 29, 36, 43],
+        [1, 6, 23, 26, 32, 36],
+        [5, 15, 19, 24, 33, 36],
+        [1, 5, 10, 24, 33, 40],
+        [5, 10, 17, 22, 36, 40],
+        [5, 18, 22, 26, 29, 36],
+        [11, 13, 20, 24, 33, 43],
+        [1, 13, 22, 33, 35, 40],
+        [4, 19, 29, 36, 38, 43],
+        [5, 8, 20, 26, 33, 35],
+        [1, 10, 24, 26, 31, 36],
+        [8, 19, 23, 29, 32, 35],
+        [2, 11, 24, 31, 36, 43],
+        [4, 11, 22, 24, 29, 38],
+        [2, 10, 22, 29, 40, 43],
+        [1, 18, 20, 26, 28, 35],
+        [1, 11, 24, 28, 32, 36],
+        [4, 18, 20, 23, 36, 43],
+        [11, 18, 20, 23, 31, 35],
+        [5, 11, 13, 24, 35, 40],
+        [7, 15, 19, 22, 24, 35],
+        [10, 18, 20, 22, 33, 43],
+        [6, 18, 23, 27, 33, 43],
+        [3, 19, 26, 29, 32, 36],
+        [1, 18, 23, 29, 35, 38],
+        [10, 13, 19, 23, 36, 42],
+        [11, 13, 20, 23, 29, 42],
+        [2, 5, 20, 26, 29, 42],
+        [2, 5, 22, 24, 36, 39],
+        [2, 6, 11, 26, 35, 40],
+        [1, 10, 23, 35, 37, 40],
+        [15, 20, 22, 26, 29, 35],
+        [1, 6, 19, 31, 33, 40],
+        [5, 11, 20, 28, 31, 36],
+        [6, 20, 23, 31, 40, 43],
+        [11, 15, 18, 24, 26, 35],
+        [1, 6, 26, 28, 33, 42],
+        [5, 8, 20, 22, 29, 38],
+        [1, 19, 24, 29, 32, 42],
+        [1, 5, 18, 24, 35, 37],
+        [11, 15, 20, 22, 24, 36],
+        [5, 10, 26, 28, 36, 41],
+        [1, 6, 20, 24, 26, 37],
+        [4, 19, 23, 33, 35, 42],
+        [3, 5, 20, 36, 41, 43],
+        [1, 5, 29, 31, 36, 40],
+        [3, 6, 26, 28, 36, 43],
+        [1, 13, 24, 32, 35, 43],
+        [6, 11, 14, 23, 33, 42],
+        [10, 14, 19, 22, 33, 42],
+        [4, 10, 19, 26, 29, 42],
+        [5, 10, 26, 29, 33, 39],
+        [1, 11, 14, 27, 33, 36],
+        [8, 10, 19, 23, 33, 37],
+        [5, 14, 17, 24, 29, 43],
+        [7, 11, 19, 24, 27, 36],
+        [1, 6, 11, 18, 33, 37],
+        [1, 5, 20, 31, 35, 42],
+        [6, 11, 19, 22, 36, 42],
+        [1, 6, 18, 20, 41, 43],
+        [1, 6, 16, 35, 40, 43],
+        [1, 8, 20, 22, 32, 35],
+        [5, 10, 16, 20, 40, 43],
+        [6, 8, 23, 26, 35, 37],
+        [5, 10, 19, 24, 30, 42],
+        [6, 10, 19, 22, 30, 35],
+        [8, 19, 22, 28, 33, 36],
+        [5, 14, 26, 31, 33, 36],
+        [11, 14, 20, 26, 36, 41],
+        [1, 16, 19, 33, 36, 43],
+        [5, 8, 10, 22, 35, 43],
+        [5, 7, 19, 24, 29, 38],
+        [5, 15, 24, 26, 29, 40],
+        [1, 14, 22, 24, 29, 40],
+        [1, 6, 17, 31, 36, 43],
+        [1, 4, 19, 24, 35, 40],
+        [6, 10, 22, 24, 37, 43],
+        [1, 6, 19, 35, 39, 42],
+        [5, 18, 24, 26, 28, 33],
+        [1, 4, 20, 24, 38, 43],
+        [13, 19, 24, 26, 28, 36],
+        [6, 11, 19, 24, 30, 40],
+        [5, 14, 20, 23, 27, 33],
+        [3, 11, 18, 24, 29, 43],
+        [2, 11, 19, 24, 35, 37],
+        [11, 16, 18, 23, 29, 33],
+        [4, 11, 19, 31, 33, 36],
+        [1, 8, 19, 29, 36, 41],
+        [3, 22, 24, 26, 29, 42],
+        [2, 10, 19, 23, 29, 38],
+        [5, 17, 19, 24, 32, 35],
+        [1, 6, 10, 19, 29, 37],
+        [4, 17, 22, 26, 33, 36],
+        [8, 20, 26, 31, 36, 43],
+        [7, 10, 18, 26, 36, 43],
+        [6, 13, 18, 24, 26, 43],
+        [1, 10, 26, 29, 35, 41],
+        [1, 11, 17, 20, 36, 40],
+        [1, 4, 20, 22, 36, 41],
+        [7, 10, 19, 24, 26, 40],
+        [6, 8, 19, 22, 29, 43],
+        [5, 11, 18, 33, 36, 38],
+        [5, 11, 20, 24, 32, 42],
+        [1, 10, 18, 20, 23, 30],
+        [1, 7, 11, 29, 36, 38],
+        [6, 17, 19, 26, 30, 36],
+        [5, 10, 19, 32, 36, 39],
+        [8, 11, 26, 29, 33, 38],
+        [5, 15, 20, 24, 28, 43],
+        [2, 10, 20, 23, 32, 43],
+        [4, 11, 23, 29, 35, 40],
+        [3, 17, 19, 24, 36, 43],
+        [10, 15, 23, 26, 30, 36],
+        [4, 22, 24, 26, 35, 37],
+        [11, 18, 20, 26, 30, 33],
+        [11, 22, 24, 27, 33, 37],
+        [1, 11, 24, 30, 33, 42],
+        [4, 14, 20, 22, 29, 43],
+        [1, 3, 20, 29, 32, 43],
+        [1, 5, 20, 30, 32, 36],
+        [13, 16, 20, 23, 35, 43],
+        [3, 10, 22, 32, 36, 43],
+        [1, 8, 22, 29, 33, 37],
+        [15, 19, 26, 33, 35, 40],
+        [1, 8, 19, 33, 35, 38],
+        [1, 4, 18, 33, 35, 43],
+        [6, 11, 20, 23, 27, 37],
+        [1, 6, 22, 31, 35, 37],
+        [3, 10, 22, 26, 35, 40],
+        [16, 20, 23, 26, 31, 33],
+        [2, 5, 10, 22, 33, 37],
+        [5, 13, 20, 22, 35, 37],
+        [1, 8, 10, 29, 38, 43],
+        [1, 10, 16, 23, 36, 41],
+        [1, 10, 14, 24, 41, 43],
+        [14, 18, 26, 29, 33, 43],
+        [6, 11, 16, 22, 33, 40],
+        [2, 11, 20, 22, 29, 41],
+        [6, 11, 20, 26, 31, 42],
+        [5, 10, 18, 20, 26, 37],
+        [15, 22, 24, 29, 32, 43],
+        [6, 13, 22, 26, 36, 41],
+        [1, 5, 14, 20, 29, 41],
+        [13, 17, 22, 29, 36, 43],
+        [1, 22, 27, 29, 32, 36],
+        [3, 11, 20, 24, 26, 40],
+        [8, 11, 18, 22, 29, 35],
+        [1, 16, 24, 26, 29, 38],
+        [4, 11, 17, 24, 35, 43],
+        [1, 14, 20, 33, 37, 43],
+        [4, 6, 26, 29, 40, 43],
+        [5, 7, 24, 30, 35, 43],
+        [6, 11, 14, 24, 38, 43],
+        [7, 20, 22, 26, 33, 40],
+        [6, 10, 19, 20, 23, 24],
+        [5, 6, 23, 31, 35, 36],
+        [5, 6, 23, 24, 30, 33],
+        [2, 10, 22, 23, 35, 36],
+        [3, 19, 20, 23, 35, 36],
+        [1, 15, 23, 24, 35, 36],
+        [6, 22, 23, 24, 27, 36],
+        [10, 11, 23, 24, 30, 35],
+        [7, 20, 22, 23, 24, 29],
+        [4, 19, 23, 24, 29, 30],
+        [6, 11, 23, 24, 29, 31],
+        [13, 18, 22, 23, 24, 35],
+        [8, 22, 23, 27, 33, 35],
+        [1, 2, 23, 24, 33, 37],
+        [2, 19, 23, 24, 32, 36],
+        [1, 6, 11, 35, 36, 41],
+        [5, 13, 23, 24, 29, 32],
+        [1, 2, 26, 35, 36, 43],
+        [4, 6, 22, 35, 36, 43],
+        [10, 11, 13, 26, 35, 36],
+        [14, 23, 24, 26, 28, 29],
+        [11, 13, 23, 24, 36, 37],
+        [5, 6, 13, 19, 20, 36],
+        [10, 15, 22, 23, 24, 40],
+        [5, 18, 20, 23, 24, 38],
+        [5, 6, 23, 29, 39, 40],
+        [6, 17, 22, 23, 35, 42],
+        [7, 23, 24, 26, 27, 33],
+        [2, 13, 20, 23, 24, 26],
+        [1, 14, 20, 23, 24, 42],
+        [1, 5, 10, 35, 36, 38],
+        [3, 23, 24, 26, 32, 35],
+        [5, 10, 23, 24, 27, 37],
+        [4, 19, 20, 24, 26, 33],
+        [5, 6, 10, 33, 42, 43],
+        [10, 11, 19, 20, 30, 36],
+        [4, 14, 22, 23, 24, 33],
+        [17, 19, 20, 29, 40, 43],
+        [1, 5, 6, 28, 29, 35],
+        [3, 5, 7, 23, 24, 36],
+        [11, 15, 23, 24, 32, 33],
+        [4, 22, 23, 28, 29, 36],
+        [5, 7, 22, 28, 35, 36],
+        [5, 6, 18, 36, 37, 43],
+        [3, 20, 23, 24, 30, 43],
+        [14, 19, 23, 24, 27, 35],
+        [5, 6, 15, 22, 35, 40],
+        [5, 6, 10, 11, 27, 36],
+        [2, 19, 20, 22, 36, 37],
+        [13, 19, 20, 22, 24, 42],
+        [5, 16, 23, 24, 35, 39],
+        [1, 10, 11, 32, 33, 35],
+        [3, 22, 23, 29, 30, 35],
+        [7, 10, 11, 22, 36, 37],
+        [7, 10, 23, 24, 38, 43],
+        [6, 15, 19, 20, 35, 43],
+        [18, 19, 23, 24, 31, 33],
+        [5, 19, 20, 28, 29, 32],
+        [19, 20, 22, 31, 35, 40],
+        [11, 16, 20, 23, 24, 41],
+        [1, 10, 19, 20, 40, 42],
+        [1, 2, 18, 19, 29, 33],
+        [4, 5, 23, 29, 33, 38],
+        [17, 20, 22, 23, 30, 36],
+        [10, 18, 22, 23, 29, 32],
+        [6, 17, 23, 24, 32, 43],
+        [19, 20, 23, 32, 33, 40],
+        [15, 22, 23, 33, 36, 37],
+        [5, 6, 20, 23, 41, 42],
+        [2, 5, 19, 35, 36, 41],
+        [10, 11, 23, 28, 36, 40],
+        [1, 6, 18, 23, 24, 28],
+        [11, 18, 19, 20, 29, 37],
+        [14, 19, 20, 23, 29, 31],
+        [5, 8, 11, 35, 36, 37],
+        [6, 22, 23, 28, 32, 33],
+        [5, 6, 7, 26, 36, 40],
+        [5, 6, 13, 26, 35, 42],
+        [10, 11, 18, 26, 29, 40],
+        [10, 11, 24, 26, 37, 41],
+        [6, 11, 19, 20, 33, 41],
+        [4, 10, 11, 29, 33, 43],
+        [11, 16, 23, 27, 35, 36],
+        [4, 18, 19, 26, 35, 36],
+        [16, 23, 24, 26, 36, 43],
+        [5, 6, 14, 19, 33, 35],
+        [1, 16, 17, 22, 35, 36],
+        [2, 10, 11, 35, 42, 43],
+        [1, 19, 28, 31, 35, 36],
+        [6, 15, 23, 24, 26, 42],
+        [16, 19, 20, 26, 27, 36],
+        [8, 10, 20, 22, 23, 39],
+        [5, 10, 11, 20, 35, 39],
+        [6, 8, 19, 26, 32, 33],
+        [2, 5, 19, 20, 24, 40],
+        [3, 5, 26, 27, 35, 36],
+        [10, 11, 24, 32, 40, 43],
+        [1, 5, 24, 29, 30, 39],
+        [1, 6, 23, 29, 30, 41],
+        [10, 18, 19, 29, 30, 43],
+        [3, 19, 22, 32, 33, 35],
+        [8, 19, 20, 26, 29, 30],
+        [4, 20, 22, 23, 35, 38],
+        [8, 10, 11, 20, 37, 43],
+        [8, 23, 24, 31, 35, 43],
+        [10, 11, 22, 24, 28, 31],
+        [1, 2, 10, 31, 33, 43],
+        [11, 19, 20, 24, 28, 38],
+        [11, 15, 19, 32, 35, 36],
+        [5, 6, 22, 24, 31, 42],
+        [1, 10, 26, 27, 33, 37],
+        [11, 16, 20, 26, 28, 29],
+        [2, 19, 20, 26, 32, 35],
+        [8, 10, 11, 23, 29, 41],
+        [3, 5, 6, 22, 30, 36],
+        [6, 10, 22, 26, 27, 29],
+        [1, 2, 5, 30, 33, 35],
+        [10, 11, 13, 19, 33, 40],
+        [11, 14, 22, 31, 35, 36],
+        [5, 6, 24, 26, 27, 32],
+        [10, 18, 23, 24, 26, 39],
+        [7, 10, 22, 23, 30, 33],
+        [5, 6, 18, 19, 29, 41],
+        [1, 24, 27, 36, 37, 43],
+        [1, 5, 6, 16, 36, 39],
+        [1, 18, 19, 20, 36, 39],
+        [1, 19, 20, 30, 35, 37],
+        [3, 11, 35, 36, 38, 43],
+        [5, 10, 19, 20, 31, 33],
+        [7, 19, 26, 28, 29, 33],
+        [14, 18, 19, 20, 24, 43],
+        [1, 15, 19, 20, 24, 41],
+        [1, 5, 6, 20, 27, 40],
+        [8, 26, 28, 29, 35, 43],
+        [2, 6, 14, 22, 23, 29],
+        [5, 6, 20, 22, 32, 43],
+        [5, 8, 24, 32, 33, 43],
+        [5, 10, 11, 28, 29, 38],
+        [8, 13, 19, 35, 36, 43],
+        [2, 5, 6, 17, 35, 43],
+        [4, 6, 19, 24, 42, 43],
+        [1, 10, 11, 13, 24, 38],
+        [3, 20, 22, 23, 33, 41],
+        [5, 6, 13, 29, 38, 43],
+        [6, 11, 18, 19, 35, 38],
+        [1, 2, 10, 19, 24, 39],
+        [10, 11, 16, 26, 33, 42],
+        [5, 17, 26, 29, 30, 35],
+        [5, 6, 19, 24, 37, 39],
+        [3, 5, 6, 24, 40, 43],
+        [1, 8, 10, 23, 24, 32],
+        [10, 11, 20, 22, 27, 40],
+        [10, 13, 19, 20, 41, 43],
+        [5, 14, 15, 35, 36, 43],
+        [6, 7, 22, 24, 26, 39],
+        [1, 4, 19, 20, 27, 29],
+        [8, 22, 26, 35, 36, 39],
+        [1, 10, 11, 36, 39, 42],
+        [5, 6, 20, 26, 28, 39],
+        [5, 6, 11, 29, 30, 42],
+        [6, 13, 14, 22, 33, 43],
+        [5, 16, 19, 29, 30, 33],
+        [5, 6, 26, 33, 37, 41],
+        [5, 6, 7, 22, 27, 33],
+        [3, 19, 20, 22, 29, 39],
+        [1, 10, 20, 22, 37, 38],
+        [7, 19, 20, 32, 36, 43],
+        [10, 11, 15, 36, 41, 43],
+        [1, 19, 24, 27, 28, 33],
+        [3, 4, 20, 26, 35, 43],
+        [1, 10, 22, 28, 29, 30],
+        [1, 6, 26, 27, 30, 35],
+        [5, 6, 10, 22, 23, 38],
+        [11, 17, 20, 26, 27, 35],
+        [1, 10, 15, 18, 19, 35],
+        [3, 19, 20, 33, 42, 43],
+        [4, 5, 17, 20, 33, 43],
+        [10, 11, 23, 27, 33, 38],
+        [6, 15, 16, 20, 22, 23],
+        [10, 11, 19, 27, 29, 32],
+        [6, 10, 11, 13, 23, 32],
+        [10, 17, 19, 20, 22, 32],
+        [4, 6, 11, 19, 28, 29],
+        [1, 2, 6, 26, 29, 31],
+        [10, 11, 15, 22, 35, 38],
+        [6, 7, 19, 33, 38, 43],
+        [6, 10, 18, 19, 26, 31],
+        [1, 6, 10, 11, 26, 43],
+        [4, 5, 11, 24, 33, 39],
+        [6, 18, 19, 20, 22, 27],
+        [4, 5, 16, 19, 20, 35],
+        [6, 10, 11, 18, 22, 41],
+        [15, 16, 22, 33, 35, 43],
+        [1, 11, 15, 16, 20, 33],
+        [16, 22, 26, 29, 32, 33],
+        [5, 6, 16, 17, 22, 29],
+        [6, 7, 26, 31, 35, 43],
+        [6, 7, 11, 20, 22, 30],
+        [15, 19, 20, 22, 30, 33],
+        [5, 6, 11, 13, 28, 33],
+        [10, 11, 14, 22, 29, 39],
+        [1, 5, 6, 10, 32, 41],
+        [5, 8, 10, 11, 30, 33],
+        [8, 10, 11, 19, 31, 35],
+        [1, 5, 6, 15, 33, 38],
+        [10, 11, 16, 18, 19, 24],
+        [3, 10, 19, 20, 26, 28],
+        [10, 16, 17, 19, 23, 35],
+        [7, 10, 11, 20, 26, 32],
+        [6, 7, 11, 26, 29, 41],
+        [1, 6, 11, 20, 38, 39],
+        [10, 11, 15, 17, 20, 23],
+        [5, 10, 29, 31, 32, 43],
+        [1, 10, 11, 20, 31, 41],
+        [6, 7, 11, 23, 28, 35],
+        [10, 15, 26, 32, 33, 43],
+        [11, 14, 29, 30, 35, 43],
+        [10, 19, 26, 27, 35, 39],
+        [6, 10, 11, 15, 19, 39],
+        [11, 13, 14, 19, 20, 35],
+        [1, 6, 23, 33, 35, 36],
+        [6, 22, 23, 24, 33, 35],
+        [5, 6, 23, 29, 33, 36],
+        [5, 20, 23, 24, 29, 35],
+        [6, 19, 20, 23, 29, 36],
+        [1, 20, 23, 29, 33, 36],
+        [1, 20, 23, 24, 33, 35],
+        [6, 20, 23, 26, 33, 36],
+        [10, 19, 23, 24, 29, 36],
+        [5, 6, 20, 23, 35, 36],
+        [6, 19, 23, 24, 29, 33],
+        [5, 10, 23, 24, 29, 33],
+        [6, 11, 23, 24, 33, 36],
+        [10, 20, 23, 24, 29, 43],
+        [10, 20, 22, 23, 24, 35],
+        [11, 20, 23, 24, 29, 33],
+        [5, 10, 23, 29, 35, 36],
+        [6, 19, 23, 24, 35, 36],
+        [2, 22, 23, 24, 29, 35],
+        [5, 10, 22, 24, 29, 35],
+        [5, 6, 22, 33, 35, 36],
+        [20, 22, 23, 33, 35, 36],
+        [6, 19, 20, 23, 33, 35],
+        [19, 20, 22, 24, 29, 35],
+        [6, 11, 23, 29, 35, 36],
+        [1, 6, 19, 29, 33, 36],
+        [6, 11, 26, 33, 35, 36],
+        [6, 20, 23, 24, 26, 35],
+        [5, 23, 24, 33, 35, 36],
+        [20, 23, 26, 29, 35, 36],
+        [6, 23, 24, 26, 29, 36],
+        [2, 23, 26, 29, 33, 36],
+        [1, 6, 20, 33, 36, 43],
+        [6, 10, 19, 23, 33, 36],
+        [1, 6, 24, 26, 33, 35],
+        [6, 20, 23, 24, 33, 43],
+        [10, 22, 23, 24, 33, 36],
+        [2, 23, 24, 26, 33, 35],
+        [6, 20, 22, 23, 29, 33],
+        [10, 11, 20, 23, 29, 36],
+        [5, 19, 20, 29, 33, 36],
+        [10, 11, 23, 24, 33, 35],
+        [1, 19, 20, 29, 35, 36],
+        [11, 20, 24, 26, 29, 36],
+        [5, 10, 20, 29, 36, 43],
+        [5, 6, 18, 23, 33, 35],
+        [5, 20, 22, 29, 35, 36],
+        [5, 10, 20, 23, 33, 36],
+        [1, 22, 24, 29, 33, 35],
+        [10, 19, 22, 24, 29, 33],
+        [6, 10, 23, 29, 36, 43],
+        [1, 6, 20, 22, 35, 36],
+        [1, 6, 20, 23, 24, 36],
+        [1, 23, 24, 29, 35, 36],
+        [6, 23, 24, 29, 35, 43],
+      ];
+
+      function formatPanel(ticket) {
+        return ticket.map((n) => "R" + n).join(",") + ",0,1,1";
+      }
+
+      const batchSize = 50; // 한번에 50장
+      const numBatches = Math.ceil(allTickets.length / batchSize);
+
+      // 진행 표시
+      const progressDiv = document.getElementById("progress");
+      for (let i = 0; i < numBatches; i++) {
+        const item = document.createElement("span");
+        item.className = "progress-item";
+        item.id = `prog-${i}`;
+        item.textContent = `${i + 1}차`;
+        progressDiv.appendChild(item);
+      }
+
+      // 배치 생성
+      const batchesDiv = document.getElementById("batches");
+
+      for (let batchIdx = 0; batchIdx < numBatches; batchIdx++) {
+        const start = batchIdx * batchSize;
+        const end = Math.min((batchIdx + 1) * batchSize, allTickets.length);
+        const batchTickets = allTickets.slice(start, end);
+        const totalPrice = batchTickets.length * 200;
+
+        const batchDiv = document.createElement("div");
+        batchDiv.className = "batch";
+
+        let ticketList = batchTickets
+          .map(
+            (t, i) =>
+              `<div class="ticket-line">${start + i + 1}. ${t.join(", ")}</div>`,
+          )
+          .join("");
+
+        batchDiv.innerHTML = `
+        <h3>📦 ${batchIdx + 1}차 구매 (${start + 1}~${end}번)</h3>
+        <p><b>${batchTickets.length}장</b> × 200원 = <b>${totalPrice.toLocaleString()}원</b></p>
+        <button onclick="submitBatch(${batchIdx})" id="btn-${batchIdx}">🚀 ${batchIdx + 1}차 제출 (${batchTickets.length}장)</button>
+        <div class="tickets">${ticketList}</div>
+        <form id="form-${batchIdx}" method="POST" action="https://takarakuji.rakuten.co.jp/loto/alert_purchase/" target="_blank" style="display:none;"></form>
+      `;
+
+        batchesDiv.appendChild(batchDiv);
+
+        // 폼 필드 생성
+        const form = document.getElementById(`form-${batchIdx}`);
+
+        // 기본 필드
+        const fields = {
+          loto_type: "6",
+          unit_price: "200",
+          vote_continuation_flag: "1",
+          professional: "0",
+          auto_vote: "0",
+          total_price: String(totalPrice),
+        };
+
+        for (const [name, value] of Object.entries(fields)) {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = name;
+          input.value = value;
+          form.appendChild(input);
+        }
+
+        // 50개 패널 추가
+        batchTickets.forEach((ticket, idx) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = `panel[${idx}]`;
+          input.value = formatPanel(ticket);
+          form.appendChild(input);
+        });
+      }
+
+      function submitBatch(batchIdx) {
+        const form = document.getElementById(`form-${batchIdx}`);
+        form.submit();
+
+        // 버튼 상태 변경
+        const btn = document.getElementById(`btn-${batchIdx}`);
+        btn.textContent = "✓ 제출됨";
+        btn.classList.add("done");
+
+        // 진행 표시 업데이트
+        document.getElementById(`prog-${batchIdx}`).classList.add("done");
+      }
+
+      // 당첨 확인 기능
+      function checkWinning() {
+        // 입력값 가져오기
+        const mainNumbers = [];
+        for (let i = 1; i <= 6; i++) {
+          const val = parseInt(document.getElementById(`num${i}`).value);
+          if (isNaN(val) || val < 1 || val > 43) {
+            alert(`본숫자 ${i}을(를) 올바르게 입력해주세요 (1~43)`);
+            return;
+          }
+          mainNumbers.push(val);
+        }
+        const bonusNumber = parseInt(document.getElementById('bonus').value);
+        if (isNaN(bonusNumber) || bonusNumber < 1 || bonusNumber > 43) {
+          alert('보너스 숫자를 올바르게 입력해주세요 (1~43)');
+          return;
+        }
+
+        // 당첨 결과 계산
+        const results = {
+          1: [], // 1등: 6개 일치
+          2: [], // 2등: 5개 + 보너스
+          3: [], // 3등: 5개 일치
+          4: [], // 4등: 4개 일치
+          5: []  // 5등: 3개 일치
+        };
+
+        const prizes = {
+          1: 200000000, // 2억엔
+          2: 10000000,  // 1000만엔
+          3: 300000,    // 30만엔
+          4: 6800,      // 6800엔
+          5: 1000       // 1000엔
+        };
+
+        allTickets.forEach((ticket, idx) => {
+          // 본숫자와 일치하는 개수
+          const matchedMain = ticket.filter(n => mainNumbers.includes(n));
+          const matchCount = matchedMain.length;
+
+          // 보너스 숫자 일치 여부
+          const matchBonus = ticket.includes(bonusNumber);
+
+          let rank = 0;
+          if (matchCount === 6) {
+            rank = 1; // 1등
+          } else if (matchCount === 5 && matchBonus) {
+            rank = 2; // 2등
+          } else if (matchCount === 5) {
+            rank = 3; // 3등
+          } else if (matchCount === 4) {
+            rank = 4; // 4등
+          } else if (matchCount === 3) {
+            rank = 5; // 5등
+          }
+
+          if (rank > 0) {
+            results[rank].push({
+              index: idx + 1,
+              ticket: ticket,
+              matchedNumbers: matchedMain,
+              matchBonus: matchBonus
+            });
+          }
+        });
+
+        // 결과 표시
+        displayResults(results, prizes, mainNumbers, bonusNumber);
+      }
+
+      // 고액당첨 데이터 저장용 전역 변수
+      let currentHighPrizeIndex = 0;
+      let highPrizeTicketsData = [];
+      let highPrizeResultsData = {};
+      let mainNumbersData = [];
+
+      function displayResults(results, prizes, mainNumbers, bonusNumber) {
+        const resultsDiv = document.getElementById('results');
+
+        // 고액당첨 (1~3등)과 일반당첨 (4~5등) 분리
+        const highPrizeCount = results[1].length + results[2].length + results[3].length;
+        const highPrizeTickets = [...results[1], ...results[2], ...results[3]];
+
+        // 전역 변수에 저장
+        currentHighPrizeIndex = 0;
+        highPrizeTicketsData = highPrizeTickets;
+        highPrizeResultsData = results;
+        mainNumbersData = mainNumbers;
+
+        // 총 당첨금 계산 (4등, 5등만)
+        let normalPrize = 0;
+        let normalWinners = 0;
+        for (let rank = 4; rank <= 5; rank++) {
+          normalPrize += results[rank].length * prizes[rank];
+          normalWinners += results[rank].length;
+        }
+
+        let html = '<div class="results">';
+
+        // 당첨번호 표시
+        html += `<div style="text-align:center; margin-bottom:15px; padding:10px; background:#e3f2fd; border-radius:8px;">
+          <strong>당첨번호:</strong> ${mainNumbers.join(' - ')} + <span style="color:#ff9800; font-weight:bold;">${bonusNumber}</span>
+        </div>`;
+
+        // 요약 카드 (고액당첨, 4등, 5등)
+        html += '<div class="result-summary">';
+
+        // 고액당첨 카드 (1~3등 합계) - 갯수 숨김
+        html += `<div class="result-card" style="background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%); color: white;">
+          <h4 style="color:white;">🏆 고액당첨</h4>
+          <div class="count" style="color:white;">?장</div>
+          <div class="prize" style="color:rgba(255,255,255,0.9);">스크래치로 확인!</div>
+        </div>`;
+
+        // 4등
+        const count4 = results[4].length;
+        html += `<div class="result-card ${count4 > 0 ? 'has-win' : ''}">
+          <h4>4등</h4>
+          <div class="count">${count4}장</div>
+          <div class="prize">약 6,800엔</div>
+        </div>`;
+
+        // 5등
+        const count5 = results[5].length;
+        html += `<div class="result-card ${count5 > 0 ? 'has-win' : ''}">
+          <h4>5등</h4>
+          <div class="count">${count5}장</div>
+          <div class="prize">1,000엔</div>
+        </div>`;
+
+        html += '</div>';
+
+        // 고액당첨 스크래치 카드 섹션 (항상 표시)
+        html += `<div class="scratch-section">
+          <h4>🎰 고액당첨 스크래치 카드</h4>
+          <p style="text-align:center; color:#aaa; font-size:12px; margin-bottom:15px;">카드를 긁어서 당첨 여부를 확인하세요!</p>
+          <div class="scratch-cards" id="scratch-cards-container">`;
+
+        // 첫 번째 스크래치 카드 (또는 꽝)
+        html += createScratchCardHtml(0, highPrizeTickets, results, mainNumbers);
+
+        html += `</div>
+          <button class="reveal-all-btn" id="next-scratch-btn" onclick="showNextScratchCard()" style="background: #3498db;">🎫 다음 고액당첨권 확인</button>
+          <p id="scratch-progress" style="text-align:center; color:#aaa; font-size:12px; margin-top:10px;">1 / ?</p>
+        </div>`;
+
+        // DOM 업데이트 후 첫 번째 캔버스 초기화
+        setTimeout(() => {
+          initScratchCard(0);
+        }, 100);
+
+        // 일반 당첨금 (4등, 5등)
+        if (normalWinners > 0) {
+          html += `<div class="total-prize">
+            <h3>💰 일반 당첨금 (4등~5등)</h3>
+            <div class="amount">¥${normalPrize.toLocaleString()}</div>
+            <div>총 ${normalWinners}장 당첨!</div>
+          </div>`;
+
+          // 4등, 5등 티켓 상세
+          html += '<div class="winning-tickets"><h4>📋 일반 당첨 티켓 상세</h4>';
+
+          const rankNames = {4: '4등', 5: '5등'};
+          for (let rank = 4; rank <= 5; rank++) {
+            results[rank].forEach(win => {
+              const ticketDisplay = win.ticket.map(n => {
+                if (mainNumbers.includes(n)) {
+                  return `<span class="matched">${n}</span>`;
+                }
+                return n;
+              }).join(', ');
+
+              html += `<div class="winning-ticket">
+                <span class="rank">${rankNames[rank]}</span> -
+                #${win.index}번: <span class="numbers">[${ticketDisplay}]</span>
+                (${win.matchedNumbers.length}개 일치)
+              </div>`;
+            });
+          }
+          html += '</div>';
+        } else if (highPrizeCount === 0) {
+          html += '<div style="text-align:center; padding:30px; color:#999;">😢 일반 당첨된 티켓이 없습니다</div>';
+        }
+
+        html += '</div>';
+        resultsDiv.innerHTML = html;
+      }
+
+      // 스크래치 카드 HTML 생성
+      function createScratchCardHtml(idx, highPrizeTickets, results, mainNumbers) {
+        const rankNames = {1: '🥇 1등', 2: '🥈 2등', 3: '🥉 3등'};
+        const rankPrizes = {1: '약 2억엔', 2: '약 1000만엔', 3: '약 30만엔'};
+
+        // 고액당첨이 없거나 인덱스를 초과한 경우 꽝
+        if (!highPrizeTickets || highPrizeTickets.length === 0 || idx >= highPrizeTickets.length) {
+          return `<div class="scratch-card" id="scratch-card-${idx}">
+            <div class="scratch-content" style="background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);">
+              <div class="rank-text" style="font-size: 36px;">꽝...</div>
+              <div class="prize" style="color:#7f8c8d; font-weight:bold;">다음 기회에!</div>
+              <div class="ticket-info" style="color:#95a5a6;">고액당첨 없음</div>
+            </div>
+            <canvas class="scratch-canvas" id="scratch-canvas-${idx}" width="280" height="120"></canvas>
+          </div>`;
+        }
+
+        const win = highPrizeTickets[idx];
+
+        // 등수 찾기
+        let winRank = 0;
+        for (let r = 1; r <= 3; r++) {
+          if (results[r].includes(win)) {
+            winRank = r;
+            break;
+          }
+        }
+
+        const ticketDisplay = win.ticket.map(n => {
+          if (mainNumbers.includes(n)) {
+            return `<span class="matched">${n}</span>`;
+          }
+          return n;
+        }).join(', ');
+
+        return `<div class="scratch-card" id="scratch-card-${idx}" data-rank="${winRank}">
+          <div class="scratch-content">
+            <div class="rank-text">${rankNames[winRank]}</div>
+            <div class="prize" style="color:#e74c3c; font-weight:bold;">${rankPrizes[winRank]}</div>
+            <div class="ticket-info">#${win.index}번 티켓</div>
+            <div class="numbers-text">[${ticketDisplay}]</div>
+          </div>
+          <canvas class="scratch-canvas" id="scratch-canvas-${idx}" width="280" height="120"></canvas>
+        </div>`;
+      }
+
+      // 다음 스크래치 카드 표시
+      function showNextScratchCard() {
+        currentHighPrizeIndex++;
+
+        const container = document.getElementById('scratch-cards-container');
+        const progressEl = document.getElementById('scratch-progress');
+        const nextBtn = document.getElementById('next-scratch-btn');
+
+        // 기존 카드 숨기기 (캔버스 제거)
+        const prevCanvas = document.getElementById(`scratch-canvas-${currentHighPrizeIndex - 1}`);
+        if (prevCanvas) {
+          prevCanvas.style.opacity = '0';
+        }
+
+        // 새 카드 추가
+        const newCardHtml = createScratchCardHtml(currentHighPrizeIndex, highPrizeTicketsData, highPrizeResultsData, mainNumbersData);
+        container.innerHTML = newCardHtml;
+
+        // 새 캔버스 초기화
+        setTimeout(() => {
+          initScratchCard(currentHighPrizeIndex);
+        }, 100);
+
+        // 진행 상황 업데이트
+        const totalCards = highPrizeTicketsData.length > 0 ? highPrizeTicketsData.length : 1;
+        const displayIdx = Math.min(currentHighPrizeIndex + 1, totalCards + 1);
+        progressEl.textContent = `${displayIdx} / ?`;
+
+        // 고액당첨이 없거나 마지막 꽝 카드를 보여준 경우 버튼 숨기기
+        if (highPrizeTicketsData.length === 0) {
+          // 꽝만 있는 경우 버튼 숨기기
+          nextBtn.style.display = 'none';
+          progressEl.textContent = '고액당첨 없음';
+        } else if (currentHighPrizeIndex >= highPrizeTicketsData.length) {
+          // 모든 고액당첨 확인 후 마지막 꽝 카드
+          nextBtn.style.display = 'none';
+          progressEl.textContent = `모두 확인 완료! (총 ${highPrizeTicketsData.length}장 고액당첨)`;
+        }
+      }
+
+      // 스크래치 카드 초기화
+      function initScratchCard(idx) {
+        const canvas = document.getElementById(`scratch-canvas-${idx}`);
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        // 은색 스크래치 표면 그리기
+        const gradient = ctx.createLinearGradient(0, 0, 280, 120);
+        gradient.addColorStop(0, '#c0c0c0');
+        gradient.addColorStop(0.3, '#d8d8d8');
+        gradient.addColorStop(0.5, '#a8a8a8');
+        gradient.addColorStop(0.7, '#c8c8c8');
+        gradient.addColorStop(1, '#b0b0b0');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 280, 120);
+
+        // 스크래치 텍스트
+        ctx.fillStyle = '#666';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🎫 고액당첨!', 140, 50);
+        ctx.font = '12px sans-serif';
+        ctx.fillText('긁어서 확인하세요', 140, 75);
+
+        // 긁기 설정
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth = 40;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        function getPosition(e) {
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
+
+          if (e.touches) {
+            return {
+              x: (e.touches[0].clientX - rect.left) * scaleX,
+              y: (e.touches[0].clientY - rect.top) * scaleY
+            };
+          }
+          return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
+          };
+        }
+
+        function startDrawing(e) {
+          e.preventDefault();
+          isDrawing = true;
+          const pos = getPosition(e);
+          lastX = pos.x;
+          lastY = pos.y;
+        }
+
+        function draw(e) {
+          if (!isDrawing) return;
+          e.preventDefault();
+
+          const pos = getPosition(e);
+
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.stroke();
+
+          lastX = pos.x;
+          lastY = pos.y;
+
+          // 긁은 비율 체크
+          checkScratchPercent(canvas, idx);
+        }
+
+        function stopDrawing() {
+          isDrawing = false;
+        }
+
+        // 마우스 이벤트
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
+
+        // 터치 이벤트
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+
+        // 캔버스 초기화 완료 후 콘텐츠 표시
+        const card = document.getElementById(`scratch-card-${idx}`);
+        if (card) {
+          const content = card.querySelector('.scratch-content');
+          if (content) {
+            content.classList.add('ready');
+          }
+        }
+      }
+
+      // 긁은 비율 체크 (80% 이상 긁으면 자동 공개)
+      function checkScratchPercent(canvas, idx) {
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imageData.data;
+        let transparentPixels = 0;
+
+        for (let i = 3; i < pixels.length; i += 4) {
+          if (pixels[i] === 0) {
+            transparentPixels++;
+          }
+        }
+
+        const totalPixels = pixels.length / 4;
+        const percent = (transparentPixels / totalPixels) * 100;
+
+        if (percent > 60) {
+          // 완전히 공개
+          canvas.style.opacity = '0';
+          canvas.style.transition = 'opacity 0.3s ease';
+        }
+      }
+
+    </script>
+  </body>
+</html>

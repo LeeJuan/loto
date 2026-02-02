@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>로또7 150장 자동 제출</title>
+  <style>
+    body { font-family: 'Malgun Gothic', sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; background: #f0f0f0; }
+    h1 { color: #1565c0; text-align: center; }
+    .batch { background: white; padding: 20px; margin: 15px 0; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .batch h3 { margin-top: 0; color: #1565c0; }
+    button { background: #1565c0; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; }
+    button:hover { background: #0d47a1; }
+    button.done { background: #4caf50; }
+    .warning { background: #fff3e0; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #ff9800; }
+    .info { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    .tickets { font-family: monospace; font-size: 11px; max-height: 200px; overflow-y: auto; background: #f5f5f5; padding: 10px; border-radius: 5px; margin-top: 10px; }
+    .ticket-line { padding: 2px 0; }
+    .progress { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .progress-item { padding: 8px 15px; background: #e0e0e0; border-radius: 20px; font-size: 14px; }
+    .progress-item.done { background: #c8e6c9; color: #2e7d32; }
+    /* 당첨 확인 스타일 */
+    .check-section {
+      background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      color: white;
+    }
+    .check-section h2 {
+      margin-top: 0;
+      color: white;
+    }
+    .number-input {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+    .number-input input {
+      width: 45px;
+      height: 45px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      border: 2px solid white;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+    }
+    .number-input input.bonus {
+      border-color: #ffd700;
+      background: #fff9c4;
+    }
+    .number-input label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+    }
+    .check-btn {
+      background: #ffd700;
+      color: #333;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .check-btn:hover {
+      background: #ffeb3b;
+    }
+    .results {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      color: #333;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .result-summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .result-card {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .result-card.has-win {
+      background: linear-gradient(135deg, #ffd700 0%, #ffeb3b 100%);
+    }
+    .result-card h4 {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
+    .result-card .count {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+    }
+    .result-card .prize {
+      font-size: 11px;
+      color: #888;
+    }
+    .winning-tickets {
+      margin-top: 15px;
+    }
+    .winning-ticket {
+      background: #e8f5e9;
+      padding: 10px 15px;
+      margin: 5px 0;
+      border-radius: 8px;
+      border-left: 4px solid #4caf50;
+    }
+    .winning-ticket .rank {
+      font-weight: bold;
+      color: #1565c0;
+    }
+    .winning-ticket .numbers {
+      font-family: monospace;
+    }
+    .winning-ticket .matched {
+      color: #d32f2f;
+      font-weight: bold;
+    }
+    .total-prize {
+      background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      margin-top: 15px;
+    }
+    .total-prize h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .total-prize .amount {
+      font-size: 32px;
+      font-weight: bold;
+    }
+    /* 스크래치 카드 스타일 */
+    .scratch-section {
+      margin-top: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      border-radius: 15px;
+    }
+    .scratch-section h4 {
+      color: #ffd700;
+      margin-top: 0;
+      text-align: center;
+    }
+    .scratch-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
+    .scratch-card {
+      width: 280px;
+      height: 120px;
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      touch-action: none;
+    }
+    .scratch-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #fff9c4 0%, #fff176 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      box-sizing: border-box;
+      visibility: hidden;
+    }
+    .scratch-content.ready {
+      visibility: visible;
+    }
+    .scratch-content .rank-text {
+      font-size: 24px;
+      font-weight: bold;
+      color: #1565c0;
+    }
+    .scratch-content .ticket-info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .scratch-content .numbers-text {
+      font-family: monospace;
+      font-size: 14px;
+      margin-top: 8px;
+      color: #333;
+    }
+    .scratch-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="%23c0c0c0" stroke="%23888" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="%23fff" opacity="0.5"/></svg>') 16 16, crosshair;
+    }
+    .reveal-all-btn {
+      display: block;
+      margin: 15px auto 0;
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .reveal-all-btn:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎰 로또7 150장 자동 제출</h1>
+
+  <div class="warning">
+    <strong>⚠️ 중요!</strong><br>
+    1. 먼저 <a href="https://takarakuji.rakuten.co.jp/loto/loto7/" target="_blank">라쿠텐 로또7 페이지</a>에서 <b>로그인</b> 하세요<br>
+    2. 로그인 후 아래 버튼 클릭 → 새 탭에서 결제 확인<br>
+    3. 총 3회 반복 (50장 × 3 = 150장 = 45,000원)
+  </div>
+
+  <div class="info">
+    <strong>📊 일본 전문가 기준 100% 충족 (第663回 기준)</strong><br>
+    合計 100-185: 100% | 偶奇 2:5~5:2: 100% | 引っ張り: 99.3% | 連続数字: 55.3% | 下一桁共通: 100%<br>
+    백테스트: 6개일치 4회, 5개일치 30회
+  </div>
+
+  <!-- 당첨 확인 섹션 -->
+  <div class="check-section">
+    <h2>🎰 당첨 확인</h2>
+    <p>당첨번호를 입력하고 확인 버튼을 누르세요 (로또7: 7개 본숫자 + 보너스 2개)</p>
+    <div class="number-input">
+      <label>본1<input type="number" id="num1" min="1" max="37" placeholder=""></label>
+      <label>본2<input type="number" id="num2" min="1" max="37" placeholder=""></label>
+      <label>본3<input type="number" id="num3" min="1" max="37" placeholder=""></label>
+      <label>본4<input type="number" id="num4" min="1" max="37" placeholder=""></label>
+      <label>본5<input type="number" id="num5" min="1" max="37" placeholder=""></label>
+      <label>본6<input type="number" id="num6" min="1" max="37" placeholder=""></label>
+      <label>본7<input type="number" id="num7" min="1" max="37" placeholder=""></label>
+      <label>보1<input type="number" id="bonus1" min="1" max="37" placeholder="" class="bonus"></label>
+      <label>보2<input type="number" id="bonus2" min="1" max="37" placeholder="" class="bonus"></label>
+    </div>
+    <button class="check-btn" onclick="checkWinning()">🔍 당첨 확인하기</button>
+    <div id="results"></div>
+  </div>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="batches"></div>
+
+  <script>
+    const allTickets = [
+      [9,11,14,20,30,34,36],[9,15,17,20,22,30,34],[7,10,12,17,22,30,35],[4,12,16,23,26,29,35],[2,9,13,22,30,34,36],
+      [2,4,12,23,26,31,34],[2,12,15,22,27,30,34],[1,4,12,15,22,32,34],[7,12,15,18,20,35,37],[7,9,11,18,21,30,34],
+      [4,7,12,21,29,32,35],[7,10,12,26,29,35,37],[9,12,15,18,22,30,37],[1,7,12,20,22,30,34],[4,12,19,26,29,32,34],
+      [7,10,15,17,20,29,35],[7,12,20,22,26,33,35],[2,9,12,15,22,31,36],[4,7,11,14,22,30,34],[2,4,9,21,23,30,34],
+      [4,7,13,23,26,29,34],[7,10,15,18,21,30,35],[2,9,12,20,30,34,37],[4,7,12,20,29,31,34],[7,11,15,20,27,30,34],
+      [7,9,15,18,20,24,30],[7,10,14,20,29,34,36],[7,12,15,22,29,31,35],[9,12,15,17,22,32,35],[4,7,10,17,20,30,34],
+      [1,11,15,22,30,34,36],[2,4,15,19,22,34,36],[2,7,14,23,30,34,36],[7,9,20,22,27,34,36],[4,7,12,16,23,32,34],
+      [4,12,15,19,23,32,35],[12,15,18,24,26,29,35],[4,7,10,12,23,33,35],[4,8,11,15,21,30,34],[2,9,11,15,19,30,34],
+      [9,11,15,18,31,34,36],[2,4,9,20,31,34,36],[7,9,11,17,22,30,36],[10,12,15,17,22,34,36],[2,4,12,27,29,34,36],
+      [2,4,12,19,22,26,35],[4,7,12,16,18,29,36],[2,7,15,17,20,34,36],[1,4,11,23,26,30,34],[7,10,14,20,26,30,35],
+      [4,7,20,24,26,29,35],[4,7,11,21,23,26,35],[4,12,15,21,23,29,34],[7,10,12,21,23,30,34],[7,9,12,17,22,29,34],
+      [9,12,20,22,26,31,34],[7,10,12,15,20,31,36],[4,7,11,23,31,34,36],[7,9,11,20,30,35,37],[2,9,15,20,27,30,36],
+      [5,9,12,22,30,32,34],[4,10,12,17,20,26,35],[7,12,15,18,22,27,36],[7,9,11,20,24,26,34],[2,9,12,15,21,32,34],
+      [4,12,15,18,22,33,35],[9,13,15,18,23,30,34],[4,12,13,22,23,30,34],[12,13,15,22,23,26,35],[1,4,7,22,23,34,35],
+      [7,12,13,18,22,34,35],[7,14,15,20,22,34,35],[9,12,13,22,26,29,30],[7,9,10,20,21,30,36],[2,4,14,15,23,34,35],
+      [10,12,13,15,18,35,36],[7,8,15,21,23,34,35],[7,9,20,21,29,34,35],[4,12,13,18,26,32,35],[8,9,14,15,22,34,36],
+      [4,10,12,13,29,34,35],[12,14,15,20,29,30,34],[7,9,12,21,22,23,35],[9,15,18,21,22,34,35],[7,10,12,18,30,36,37],
+      [4,7,11,20,33,34,35],[4,8,12,21,22,34,35],[1,12,22,26,29,34,35],[7,12,15,21,22,30,32],[8,9,20,21,26,30,34],
+      [12,15,17,20,23,34,35],[2,4,12,13,23,35,36],[7,12,15,17,18,29,30],[7,12,20,21,26,29,30],[9,10,12,14,29,30,36],
+      [2,15,20,21,30,34,35],[7,11,15,17,18,34,35],[7,8,9,15,20,34,37],[7,12,14,23,29,34,35],[2,5,12,22,34,35,36],
+      [8,9,12,15,18,24,36],[4,13,20,22,26,34,35],[4,9,15,22,23,31,34],[7,10,14,15,22,30,36],[2,12,15,18,19,34,35],
+      [8,9,11,12,24,30,34],[7,12,22,23,26,27,34],[1,9,12,22,23,34,36],[9,12,13,20,22,35,36],[4,15,17,22,29,34,35],
+      [2,4,26,28,29,34,35],[2,9,14,15,20,26,34],[7,10,11,24,30,34,36],[9,14,22,23,26,30,34],[7,15,18,19,29,35,36],
+      [9,15,17,18,20,35,36],[1,4,12,18,29,30,34],[7,8,12,18,21,35,36],[8,9,12,18,26,35,37],[5,7,12,22,29,30,36],
+      [8,9,12,21,22,30,36],[4,8,9,13,23,34,35],[2,4,7,29,30,33,34],[4,9,13,20,29,30,34],[4,7,8,20,21,34,36],
+      [7,10,18,20,24,35,36],[7,8,12,15,18,31,34],[4,8,9,12,31,32,34],[7,12,15,16,26,29,32],[7,9,12,29,30,32,37],
+      [1,8,9,15,29,30,34],[7,9,10,22,30,31,34],[7,15,17,22,23,35,36],[8,9,11,18,30,36,37],[11,12,17,22,26,30,34],
+      [9,12,18,21,29,30,35],[12,13,15,18,20,26,30],[4,10,12,26,29,30,33],[4,12,13,20,26,29,36],[10,13,15,22,30,34,35],
+      [4,7,8,16,29,34,35],[7,11,15,20,21,35,36],[11,12,13,18,22,30,36],[4,12,21,22,23,26,32],[8,12,13,15,32,34,35],
+      [9,10,12,17,18,30,34],[9,12,15,18,19,26,32],[7,10,12,13,22,26,36],[1,4,15,18,20,34,35],[4,10,15,21,32,34,35]
+    ];
+
+    // 로또7 panel 형식: R + 번호들 + ,0,1,1
+    function formatPanel(ticket) {
+      return ticket.map(n => 'R' + n).join(',') + ',0,1,1';
+    }
+
+    const batchSize = 50;
+    const numBatches = Math.ceil(allTickets.length / batchSize);
+
+    // 진행 표시
+    const progressDiv = document.getElementById('progress');
+    for (let i = 0; i < numBatches; i++) {
+      const item = document.createElement('span');
+      item.className = 'progress-item';
+      item.id = `prog-${i}`;
+      item.textContent = `${i + 1}차`;
+      progressDiv.appendChild(item);
+    }
+
+    // 배치 생성
+    const batchesDiv = document.getElementById('batches');
+
+    for (let batchIdx = 0; batchIdx < numBatches; batchIdx++) {
+      const start = batchIdx * batchSize;
+      const end = Math.min((batchIdx + 1) * batchSize, allTickets.length);
+      const batchTickets = allTickets.slice(start, end);
+      const totalPrice = batchTickets.length * 300; // 로또7은 300엔
+
+      const batchDiv = document.createElement('div');
+      batchDiv.className = 'batch';
+
+      let ticketList = batchTickets.map((t, i) =>
+        `<div class="ticket-line">${start + i + 1}. ${t.join(', ')}</div>`
+      ).join('');
+
+      batchDiv.innerHTML = `
+        <h3>📦 ${batchIdx + 1}차 구매 (${start + 1}~${end}번)</h3>
+        <p><b>${batchTickets.length}장</b> × 300원 = <b>${totalPrice.toLocaleString()}원</b></p>
+        <button onclick="submitBatch(${batchIdx})" id="btn-${batchIdx}">🚀 ${batchIdx + 1}차 제출 (${batchTickets.length}장)</button>
+        <div class="tickets">${ticketList}</div>
+        <form id="form-${batchIdx}" method="POST" action="https://takarakuji.rakuten.co.jp/loto/alert_purchase/" target="_blank" style="display:none;"></form>
+      `;
+
+      batchesDiv.appendChild(batchDiv);
+
+      // 폼 필드 생성
+      const form = document.getElementById(`form-${batchIdx}`);
+
+      // 기본 필드 (로또7은 loto_type: 7, unit_price: 300)
+      const fields = {
+        'loto_type': '7',
+        'unit_price': '300',
+        'vote_continuation_flag': '1',
+        'professional': '0',
+        'auto_vote': '0',
+        'total_price': String(totalPrice)
+      };
+
+      for (const [name, value] of Object.entries(fields)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      }
+
+      // 패널 추가
+      batchTickets.forEach((ticket, idx) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `panel[${idx}]`;
+        input.value = formatPanel(ticket);
+        form.appendChild(input);
+      });
+    }
+
+    function submitBatch(batchIdx) {
+      const form = document.getElementById(`form-${batchIdx}`);
+      form.submit();
+
+      const btn = document.getElementById(`btn-${batchIdx}`);
+      btn.textContent = '✓ 제출됨';
+      btn.classList.add('done');
+
+      document.getElementById(`prog-${batchIdx}`).classList.add('done');
+    }
+
+    // 당첨 확인 기능
+    function checkWinning() {
+      // 입력값 가져오기
+      const mainNumbers = [];
+      for (let i = 1; i <= 7; i++) {
+        const val = parseInt(document.getElementById(`num${i}`).value);
+        if (isNaN(val) || val < 1 || val > 37) {
+          alert(`본숫자 ${i}을(를) 올바르게 입력해주세요 (1~37)`);
+          return;
+        }
+        mainNumbers.push(val);
+      }
+      const bonusNumbers = [];
+      for (let i = 1; i <= 2; i++) {
+        const val = parseInt(document.getElementById(`bonus${i}`).value);
+        if (isNaN(val) || val < 1 || val > 37) {
+          alert(`보너스 숫자 ${i}을(를) 올바르게 입력해주세요 (1~37)`);
+          return;
+        }
+        bonusNumbers.push(val);
+      }
+
+      // 당첨 결과 계산
+      // 로또7 당첨 기준:
+      // 1등: 7개 일치
+      // 2등: 6개 + 보너스 2개 중 1개 이상
+      // 3등: 6개 일치
+      // 4등: 5개 일치
+      // 5등: 4개 일치
+      // 6등: 3개 + 보너스 1개 이상
+      const results = {
+        1: [], // 1등: 7개 일치
+        2: [], // 2등: 6개 + 보너스
+        3: [], // 3등: 6개 일치
+        4: [], // 4등: 5개 일치
+        5: [], // 5등: 4개 일치
+        6: []  // 6등: 3개 + 보너스
+      };
+
+      const prizes = {
+        1: 600000000, // 약 6억엔
+        2: 7300000,   // 약 730만엔
+        3: 730000,    // 약 73만엔
+        4: 9100,      // 약 9,100엔
+        5: 1400,      // 약 1,400엔
+        6: 1000       // 약 1,000엔
+      };
+
+      allTickets.forEach((ticket, idx) => {
+        // 본숫자와 일치하는 개수
+        const matchedMain = ticket.filter(n => mainNumbers.includes(n));
+        const matchCount = matchedMain.length;
+
+        // 보너스 숫자 일치 개수
+        const matchedBonus = ticket.filter(n => bonusNumbers.includes(n));
+        const bonusCount = matchedBonus.length;
+
+        let rank = 0;
+        if (matchCount === 7) {
+          rank = 1; // 1등
+        } else if (matchCount === 6 && bonusCount >= 1) {
+          rank = 2; // 2등
+        } else if (matchCount === 6) {
+          rank = 3; // 3등
+        } else if (matchCount === 5) {
+          rank = 4; // 4등
+        } else if (matchCount === 4) {
+          rank = 5; // 5등
+        } else if (matchCount === 3 && bonusCount >= 1) {
+          rank = 6; // 6등
+        }
+
+        if (rank > 0) {
+          results[rank].push({
+            index: idx + 1,
+            ticket: ticket,
+            matchedNumbers: matchedMain,
+            matchedBonus: matchedBonus,
+            bonusCount: bonusCount
+          });
+        }
+      });
+
+      // 결과 표시
+      displayResults(results, prizes, mainNumbers, bonusNumbers);
+    }
+
+    // 고액당첨 데이터 저장용 전역 변수
+    let currentHighPrizeIndex = 0;
+    let highPrizeTicketsData = [];
+    let highPrizeResultsData = {};
+    let mainNumbersData = [];
+
+    function displayResults(results, prizes, mainNumbers, bonusNumbers) {
+      const resultsDiv = document.getElementById('results');
+
+      // 고액당첨 (1~3등)과 일반당첨 (4~6등) 분리
+      const highPrizeCount = results[1].length + results[2].length + results[3].length;
+      const highPrizeTickets = [...results[1], ...results[2], ...results[3]];
+
+      // 전역 변수에 저장
+      currentHighPrizeIndex = 0;
+      highPrizeTicketsData = highPrizeTickets;
+      highPrizeResultsData = results;
+      mainNumbersData = mainNumbers;
+
+      // 총 당첨금 계산 (4등, 5등, 6등만)
+      let normalPrize = 0;
+      let normalWinners = 0;
+      for (let rank = 4; rank <= 6; rank++) {
+        normalPrize += results[rank].length * prizes[rank];
+        normalWinners += results[rank].length;
+      }
+
+      let html = '<div class="results">';
+
+      // 당첨번호 표시
+      html += `<div style="text-align:center; margin-bottom:15px; padding:10px; background:#e3f2fd; border-radius:8px;">
+        <strong>당첨번호:</strong> ${mainNumbers.join(' - ')} + <span style="color:#ff9800; font-weight:bold;">${bonusNumbers.join(', ')}</span>
+      </div>`;
+
+      // 요약 카드 (고액당첨, 4등, 5등, 6등)
+      html += '<div class="result-summary">';
+
+      // 고액당첨 카드 (1~3등 합계) - 갯수 숨김
+      html += `<div class="result-card" style="background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%); color: white;">
+        <h4 style="color:white;">🏆 고액당첨</h4>
+        <div class="count" style="color:white;">?장</div>
+        <div class="prize" style="color:rgba(255,255,255,0.9);">스크래치로 확인!</div>
+      </div>`;
+
+      // 4등
+      const count4 = results[4].length;
+      html += `<div class="result-card ${count4 > 0 ? 'has-win' : ''}">
+        <h4>4등</h4>
+        <div class="count">${count4}장</div>
+        <div class="prize">약 9,100엔</div>
+      </div>`;
+
+      // 5등
+      const count5 = results[5].length;
+      html += `<div class="result-card ${count5 > 0 ? 'has-win' : ''}">
+        <h4>5등</h4>
+        <div class="count">${count5}장</div>
+        <div class="prize">약 1,400엔</div>
+      </div>`;
+
+      // 6등
+      const count6 = results[6].length;
+      html += `<div class="result-card ${count6 > 0 ? 'has-win' : ''}">
+        <h4>6등</h4>
+        <div class="count">${count6}장</div>
+        <div class="prize">약 1,000엔</div>
+      </div>`;
+
+      html += '</div>';
+
+      // 고액당첨 스크래치 카드 섹션 (항상 표시)
+      html += `<div class="scratch-section">
+        <h4>🎰 고액당첨 스크래치 카드</h4>
+        <p style="text-align:center; color:#aaa; font-size:12px; margin-bottom:15px;">카드를 긁어서 당첨 여부를 확인하세요!</p>
+        <div class="scratch-cards" id="scratch-cards-container">`;
+
+      // 첫 번째 스크래치 카드 (또는 꽝)
+      html += createScratchCardHtml(0, highPrizeTickets, results, mainNumbers);
+
+      html += `</div>
+        <button class="reveal-all-btn" id="next-scratch-btn" onclick="showNextScratchCard()">🎫 다음 고액당첨권 확인</button>
+        <p id="scratch-progress" style="text-align:center; color:#aaa; font-size:12px; margin-top:10px;">1 / ?</p>
+      </div>`;
+
+      // DOM 업데이트 후 첫 번째 캔버스 초기화
+      setTimeout(() => {
+        initScratchCard(0);
+      }, 100);
+
+      // 일반 당첨금 (4등, 5등, 6등)
+      if (normalWinners > 0) {
+        html += `<div class="total-prize">
+          <h3>💰 일반 당첨금 (4등~6등)</h3>
+          <div class="amount">¥${normalPrize.toLocaleString()}</div>
+          <div>총 ${normalWinners}장 당첨!</div>
+        </div>`;
+
+        // 4등, 5등, 6등 티켓 상세
+        html += '<div class="winning-tickets"><h4>📋 일반 당첨 티켓 상세</h4>';
+
+        const rankNames = {4: '4등', 5: '5등', 6: '6등'};
+        for (let rank = 4; rank <= 6; rank++) {
+          results[rank].forEach(win => {
+            const ticketDisplay = win.ticket.map(n => {
+              if (mainNumbers.includes(n)) {
+                return `<span class="matched">${n}</span>`;
+              }
+              return n;
+            }).join(', ');
+
+            html += `<div class="winning-ticket">
+              <span class="rank">${rankNames[rank]}</span> -
+              #${win.index}번: <span class="numbers">[${ticketDisplay}]</span>
+              (${win.matchedNumbers.length}개 일치${win.bonusCount > 0 ? ` +보너스${win.bonusCount}` : ''})
+            </div>`;
+          });
+        }
+        html += '</div>';
+      } else if (highPrizeCount === 0) {
+        html += '<div style="text-align:center; padding:30px; color:#999;">😢 일반 당첨된 티켓이 없습니다</div>';
+      }
+
+      html += '</div>';
+      resultsDiv.innerHTML = html;
+    }
+
+    // 스크래치 카드 HTML 생성
+    function createScratchCardHtml(idx, highPrizeTickets, results, mainNumbers) {
+      const rankNames = {1: '🥇 1등', 2: '🥈 2등', 3: '🥉 3등'};
+      const rankPrizes = {1: '약 6억엔', 2: '약 730만엔', 3: '약 73만엔'};
+
+      // 고액당첨이 없거나 인덱스를 초과한 경우 꽝
+      if (!highPrizeTickets || highPrizeTickets.length === 0 || idx >= highPrizeTickets.length) {
+        return `<div class="scratch-card" id="scratch-card-${idx}">
+          <div class="scratch-content" style="background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);">
+            <div class="rank-text" style="font-size: 36px;">꽝...</div>
+            <div class="prize" style="color:#7f8c8d; font-weight:bold;">다음 기회에!</div>
+            <div class="ticket-info" style="color:#95a5a6;">고액당첨 없음</div>
+          </div>
+          <canvas class="scratch-canvas" id="scratch-canvas-${idx}" width="280" height="120"></canvas>
+        </div>`;
+      }
+
+      const win = highPrizeTickets[idx];
+
+      // 등수 찾기
+      let winRank = 0;
+      for (let r = 1; r <= 3; r++) {
+        if (results[r].includes(win)) {
+          winRank = r;
+          break;
+        }
+      }
+
+      const ticketDisplay = win.ticket.map(n => {
+        if (mainNumbers.includes(n)) {
+          return `<span class="matched">${n}</span>`;
+        }
+        return n;
+      }).join(', ');
+
+      return `<div class="scratch-card" id="scratch-card-${idx}" data-rank="${winRank}">
+        <div class="scratch-content">
+          <div class="rank-text">${rankNames[winRank]}</div>
+          <div class="prize" style="color:#1565c0; font-weight:bold;">${rankPrizes[winRank]}</div>
+          <div class="ticket-info">#${win.index}번 티켓</div>
+          <div class="numbers-text">[${ticketDisplay}]</div>
+        </div>
+        <canvas class="scratch-canvas" id="scratch-canvas-${idx}" width="280" height="120"></canvas>
+      </div>`;
+    }
+
+    // 다음 스크래치 카드 표시
+    function showNextScratchCard() {
+      currentHighPrizeIndex++;
+
+      const container = document.getElementById('scratch-cards-container');
+      const progressEl = document.getElementById('scratch-progress');
+      const nextBtn = document.getElementById('next-scratch-btn');
+
+      // 기존 카드 숨기기 (캔버스 제거)
+      const prevCanvas = document.getElementById(`scratch-canvas-${currentHighPrizeIndex - 1}`);
+      if (prevCanvas) {
+        prevCanvas.style.opacity = '0';
+      }
+
+      // 새 카드 추가
+      const newCardHtml = createScratchCardHtml(currentHighPrizeIndex, highPrizeTicketsData, highPrizeResultsData, mainNumbersData);
+      container.innerHTML = newCardHtml;
+
+      // 새 캔버스 초기화
+      setTimeout(() => {
+        initScratchCard(currentHighPrizeIndex);
+      }, 100);
+
+      // 진행 상황 업데이트
+      const totalCards = highPrizeTicketsData.length > 0 ? highPrizeTicketsData.length : 1;
+      const displayIdx = Math.min(currentHighPrizeIndex + 1, totalCards + 1);
+      progressEl.textContent = `${displayIdx} / ?`;
+
+      // 고액당첨이 없거나 마지막 꽝 카드를 보여준 경우 버튼 숨기기
+      if (highPrizeTicketsData.length === 0) {
+        // 꽝만 있는 경우 버튼 숨기기
+        nextBtn.style.display = 'none';
+        progressEl.textContent = '고액당첨 없음';
+      } else if (currentHighPrizeIndex >= highPrizeTicketsData.length) {
+        // 모든 고액당첨 확인 후 마지막 꽝 카드
+        nextBtn.style.display = 'none';
+        progressEl.textContent = `모두 확인 완료! (총 ${highPrizeTicketsData.length}장 고액당첨)`;
+      }
+    }
+
+    // 스크래치 카드 초기화
+    function initScratchCard(idx) {
+      const canvas = document.getElementById(`scratch-canvas-${idx}`);
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      let isDrawing = false;
+      let lastX = 0;
+      let lastY = 0;
+
+      // 은색 스크래치 표면 그리기
+      const gradient = ctx.createLinearGradient(0, 0, 280, 120);
+      gradient.addColorStop(0, '#c0c0c0');
+      gradient.addColorStop(0.3, '#d8d8d8');
+      gradient.addColorStop(0.5, '#a8a8a8');
+      gradient.addColorStop(0.7, '#c8c8c8');
+      gradient.addColorStop(1, '#b0b0b0');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 280, 120);
+
+      // 스크래치 텍스트
+      ctx.fillStyle = '#666';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎫 고액당첨!', 140, 50);
+      ctx.font = '12px sans-serif';
+      ctx.fillText('긁어서 확인하세요', 140, 75);
+
+      // 긁기 설정
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = 40;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      function getPosition(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        if (e.touches) {
+          return {
+            x: (e.touches[0].clientX - rect.left) * scaleX,
+            y: (e.touches[0].clientY - rect.top) * scaleY
+          };
+        }
+        return {
+          x: (e.clientX - rect.left) * scaleX,
+          y: (e.clientY - rect.top) * scaleY
+        };
+      }
+
+      function startDrawing(e) {
+        e.preventDefault();
+        isDrawing = true;
+        const pos = getPosition(e);
+        lastX = pos.x;
+        lastY = pos.y;
+      }
+
+      function draw(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+
+        const pos = getPosition(e);
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+
+        lastX = pos.x;
+        lastY = pos.y;
+
+        // 긁은 비율 체크
+        checkScratchPercent(canvas, idx);
+      }
+
+      function stopDrawing() {
+        isDrawing = false;
+      }
+
+      // 마우스 이벤트
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseleave', stopDrawing);
+
+      // 터치 이벤트
+      canvas.addEventListener('touchstart', startDrawing, { passive: false });
+      canvas.addEventListener('touchmove', draw, { passive: false });
+      canvas.addEventListener('touchend', stopDrawing);
+
+      // 캔버스 초기화 완료 후 콘텐츠 표시
+      const card = document.getElementById(`scratch-card-${idx}`);
+      if (card) {
+        const content = card.querySelector('.scratch-content');
+        if (content) {
+          content.classList.add('ready');
+        }
+      }
+    }
+
+    // 긁은 비율 체크 (60% 이상 긁으면 자동 공개)
+    function checkScratchPercent(canvas, idx) {
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imageData.data;
+      let transparentPixels = 0;
+
+      for (let i = 3; i < pixels.length; i += 4) {
+        if (pixels[i] === 0) {
+          transparentPixels++;
+        }
+      }
+
+      const totalPixels = pixels.length / 4;
+      const percent = (transparentPixels / totalPixels) * 100;
+
+      if (percent > 60) {
+        // 완전히 공개
+        canvas.style.opacity = '0';
+        canvas.style.transition = 'opacity 0.3s ease';
+      }
+    }
+  </script>
+</body>
+</html>
