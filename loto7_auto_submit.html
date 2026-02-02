@@ -522,14 +522,14 @@
     function displayResults(results, prizes, mainNumbers, bonusNumbers) {
       const resultsDiv = document.getElementById('results');
 
-      // 모든 당첨 티켓을 스크래치 카드용으로 준비 (1등~6등 순서대로)
+      // 모든 당첨 티켓을 스크래치 카드용으로 준비 (6등→5등→4등→3등→2등→1등 순서대로)
       const allScratchTickets = [
-        ...results[1].map(t => ({...t, rank: 1})),
-        ...results[2].map(t => ({...t, rank: 2})),
-        ...results[3].map(t => ({...t, rank: 3})),
-        ...results[4].map(t => ({...t, rank: 4})),
+        ...results[6].map(t => ({...t, rank: 6})),
         ...results[5].map(t => ({...t, rank: 5})),
-        ...results[6].map(t => ({...t, rank: 6}))
+        ...results[4].map(t => ({...t, rank: 4})),
+        ...results[3].map(t => ({...t, rank: 3})),
+        ...results[2].map(t => ({...t, rank: 2})),
+        ...results[1].map(t => ({...t, rank: 1}))
       ];
 
       // 전역 변수에 저장
