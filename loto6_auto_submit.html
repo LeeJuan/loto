@@ -1016,31 +1016,38 @@
         displayResults(results, prizes, mainNumbers, bonusNumber);
       }
 
-      // 고액당첨 데이터 저장용 전역 변수
-      let currentHighPrizeIndex = 0;
-      let highPrizeTicketsData = [];
-      let highPrizeResultsData = {};
+      // 스크래치 데이터 저장용 전역 변수
+      let currentScratchIndex = 0;
+      let allScratchTicketsData = [];
+      let allResultsData = {};
       let mainNumbersData = [];
+      let prizesData = {};
 
       function displayResults(results, prizes, mainNumbers, bonusNumber) {
         const resultsDiv = document.getElementById('results');
 
-        // 고액당첨 (1~3등)과 일반당첨 (4~5등) 분리
-        const highPrizeCount = results[1].length + results[2].length + results[3].length;
-        const highPrizeTickets = [...results[1], ...results[2], ...results[3]];
+        // 모든 당첨 티켓을 스크래치 카드용으로 준비 (1등~5등 순서대로)
+        const allScratchTickets = [
+          ...results[1].map(t => ({...t, rank: 1})),
+          ...results[2].map(t => ({...t, rank: 2})),
+          ...results[3].map(t => ({...t, rank: 3})),
+          ...results[4].map(t => ({...t, rank: 4})),
+          ...results[5].map(t => ({...t, rank: 5}))
+        ];
 
         // 전역 변수에 저장
-        currentHighPrizeIndex = 0;
-        highPrizeTicketsData = highPrizeTickets;
-        highPrizeResultsData = results;
+        currentScratchIndex = 0;
+        allScratchTicketsData = allScratchTickets;
+        allResultsData = results;
         mainNumbersData = mainNumbers;
+        prizesData = prizes;
 
-        // 총 당첨금 계산 (4등, 5등만)
-        let normalPrize = 0;
-        let normalWinners = 0;
-        for (let rank = 4; rank <= 5; rank++) {
-          normalPrize += results[rank].length * prizes[rank];
-          normalWinners += results[rank].length;
+        // 총 당첨금 계산
+        let totalPrize = 0;
+        let totalWinners = 0;
+        for (let rank = 1; rank <= 5; rank++) {
+          totalPrize += results[rank].length * prizes[rank];
+          totalWinners += results[rank].length;
         }
 
         let html = '<div class="results">';
@@ -1050,45 +1057,43 @@
           <strong>당첨번호:</strong> ${mainNumbers.join(' - ')} + <span style="color:#ff9800; font-weight:bold;">${bonusNumber}</span>
         </div>`;
 
-        // 요약 카드 (고액당첨, 4등, 5등)
+        // 요약 카드 (모두 스크래치로 확인)
         html += '<div class="result-summary">';
 
-        // 고액당첨 카드 (1~3등 합계) - 갯수 숨김
+        // 1~3등 고액당첨 카드 - 갯수 숨김
         html += `<div class="result-card" style="background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%); color: white;">
-          <h4 style="color:white;">🏆 고액당첨</h4>
+          <h4 style="color:white;">🏆 1~3등</h4>
           <div class="count" style="color:white;">?장</div>
-          <div class="prize" style="color:rgba(255,255,255,0.9);">스크래치로 확인!</div>
+          <div class="prize" style="color:rgba(255,255,255,0.9);">스크래치!</div>
         </div>`;
 
-        // 4등
-        const count4 = results[4].length;
-        html += `<div class="result-card ${count4 > 0 ? 'has-win' : ''}">
-          <h4>4등</h4>
-          <div class="count">${count4}장</div>
-          <div class="prize">약 6,800엔</div>
+        // 4등 - 갯수 숨김
+        html += `<div class="result-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">
+          <h4 style="color:white;">4등</h4>
+          <div class="count" style="color:white;">?장</div>
+          <div class="prize" style="color:rgba(255,255,255,0.9);">스크래치!</div>
         </div>`;
 
-        // 5등
-        const count5 = results[5].length;
-        html += `<div class="result-card ${count5 > 0 ? 'has-win' : ''}">
-          <h4>5등</h4>
-          <div class="count">${count5}장</div>
-          <div class="prize">1,000엔</div>
+        // 5등 - 갯수 숨김
+        html += `<div class="result-card" style="background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white;">
+          <h4 style="color:white;">5등</h4>
+          <div class="count" style="color:white;">?장</div>
+          <div class="prize" style="color:rgba(255,255,255,0.9);">스크래치!</div>
         </div>`;
 
         html += '</div>';
 
-        // 고액당첨 스크래치 카드 섹션 (항상 표시)
+        // 전체 스크래치 카드 섹션
         html += `<div class="scratch-section">
-          <h4>🎰 고액당첨 스크래치 카드</h4>
+          <h4>🎰 당첨 확인 스크래치 카드</h4>
           <p style="text-align:center; color:#aaa; font-size:12px; margin-bottom:15px;">카드를 긁어서 당첨 여부를 확인하세요!</p>
           <div class="scratch-cards" id="scratch-cards-container">`;
 
         // 첫 번째 스크래치 카드 (또는 꽝)
-        html += createScratchCardHtml(0, highPrizeTickets, results, mainNumbers);
+        html += createScratchCardHtml(0, allScratchTickets, results, mainNumbers);
 
         html += `</div>
-          <button class="reveal-all-btn" id="next-scratch-btn" onclick="showNextScratchCard()" style="background: #3498db;">🎫 다음 고액당첨권 확인</button>
+          <button class="reveal-all-btn" id="next-scratch-btn" onclick="showNextScratchCard()" style="background: #3498db;">🎫 다음 당첨권 확인</button>
           <p id="scratch-progress" style="text-align:center; color:#aaa; font-size:12px; margin-top:10px;">1 / ?</p>
         </div>`;
 
@@ -1097,70 +1102,43 @@
           initScratchCard(0);
         }, 100);
 
-        // 일반 당첨금 (4등, 5등)
-        if (normalWinners > 0) {
-          html += `<div class="total-prize">
-            <h3>💰 일반 당첨금 (4등~5등)</h3>
-            <div class="amount">¥${normalPrize.toLocaleString()}</div>
-            <div>총 ${normalWinners}장 당첨!</div>
-          </div>`;
-
-          // 4등, 5등 티켓 상세
-          html += '<div class="winning-tickets"><h4>📋 일반 당첨 티켓 상세</h4>';
-
-          const rankNames = {4: '4등', 5: '5등'};
-          for (let rank = 4; rank <= 5; rank++) {
-            results[rank].forEach(win => {
-              const ticketDisplay = win.ticket.map(n => {
-                if (mainNumbers.includes(n)) {
-                  return `<span class="matched">${n}</span>`;
-                }
-                return n;
-              }).join(', ');
-
-              html += `<div class="winning-ticket">
-                <span class="rank">${rankNames[rank]}</span> -
-                #${win.index}번: <span class="numbers">[${ticketDisplay}]</span>
-                (${win.matchedNumbers.length}개 일치)
-              </div>`;
-            });
-          }
-          html += '</div>';
-        } else if (highPrizeCount === 0) {
-          html += '<div style="text-align:center; padding:30px; color:#999;">😢 일반 당첨된 티켓이 없습니다</div>';
-        }
-
         html += '</div>';
         resultsDiv.innerHTML = html;
       }
 
       // 스크래치 카드 HTML 생성
-      function createScratchCardHtml(idx, highPrizeTickets, results, mainNumbers) {
-        const rankNames = {1: '🥇 1등', 2: '🥈 2등', 3: '🥉 3등'};
-        const rankPrizes = {1: '약 2억엔', 2: '약 1000만엔', 3: '약 30만엔'};
+      function createScratchCardHtml(idx, allScratchTickets, results, mainNumbers) {
+        const rankNames = {1: '🥇 1등', 2: '🥈 2등', 3: '🥉 3등', 4: '🎯 4등', 5: '🎫 5등'};
+        const rankPrizes = {1: '약 2억엔', 2: '약 1000만엔', 3: '약 30만엔', 4: '약 6,800엔', 5: '1,000엔'};
+        const rankColors = {
+          1: '#e74c3c',
+          2: '#e74c3c',
+          3: '#e74c3c',
+          4: '#ff9800',
+          5: '#4caf50'
+        };
+        const rankBgColors = {
+          1: 'linear-gradient(135deg, #fff9c4 0%, #fff176 100%)',
+          2: 'linear-gradient(135deg, #fff9c4 0%, #fff176 100%)',
+          3: 'linear-gradient(135deg, #fff9c4 0%, #fff176 100%)',
+          4: 'linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%)',
+          5: 'linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%)'
+        };
 
-        // 고액당첨이 없거나 인덱스를 초과한 경우 꽝
-        if (!highPrizeTickets || highPrizeTickets.length === 0 || idx >= highPrizeTickets.length) {
+        // 당첨이 없거나 인덱스를 초과한 경우 꽝
+        if (!allScratchTickets || allScratchTickets.length === 0 || idx >= allScratchTickets.length) {
           return `<div class="scratch-card" id="scratch-card-${idx}">
             <div class="scratch-content" style="background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);">
               <div class="rank-text" style="font-size: 36px;">꽝...</div>
               <div class="prize" style="color:#7f8c8d; font-weight:bold;">다음 기회에!</div>
-              <div class="ticket-info" style="color:#95a5a6;">고액당첨 없음</div>
+              <div class="ticket-info" style="color:#95a5a6;">당첨 없음</div>
             </div>
             <canvas class="scratch-canvas" id="scratch-canvas-${idx}" width="280" height="120"></canvas>
           </div>`;
         }
 
-        const win = highPrizeTickets[idx];
-
-        // 등수 찾기
-        let winRank = 0;
-        for (let r = 1; r <= 3; r++) {
-          if (results[r].includes(win)) {
-            winRank = r;
-            break;
-          }
-        }
+        const win = allScratchTickets[idx];
+        const winRank = win.rank;
 
         const ticketDisplay = win.ticket.map(n => {
           if (mainNumbers.includes(n)) {
@@ -1170,9 +1148,9 @@
         }).join(', ');
 
         return `<div class="scratch-card" id="scratch-card-${idx}" data-rank="${winRank}">
-          <div class="scratch-content">
+          <div class="scratch-content" style="background: ${rankBgColors[winRank]};">
             <div class="rank-text">${rankNames[winRank]}</div>
-            <div class="prize" style="color:#e74c3c; font-weight:bold;">${rankPrizes[winRank]}</div>
+            <div class="prize" style="color:${rankColors[winRank]}; font-weight:bold;">${rankPrizes[winRank]}</div>
             <div class="ticket-info">#${win.index}번 티켓</div>
             <div class="numbers-text">[${ticketDisplay}]</div>
           </div>
@@ -1182,41 +1160,48 @@
 
       // 다음 스크래치 카드 표시
       function showNextScratchCard() {
-        currentHighPrizeIndex++;
+        currentScratchIndex++;
 
         const container = document.getElementById('scratch-cards-container');
         const progressEl = document.getElementById('scratch-progress');
         const nextBtn = document.getElementById('next-scratch-btn');
 
         // 기존 카드 숨기기 (캔버스 제거)
-        const prevCanvas = document.getElementById(`scratch-canvas-${currentHighPrizeIndex - 1}`);
+        const prevCanvas = document.getElementById(`scratch-canvas-${currentScratchIndex - 1}`);
         if (prevCanvas) {
           prevCanvas.style.opacity = '0';
         }
 
         // 새 카드 추가
-        const newCardHtml = createScratchCardHtml(currentHighPrizeIndex, highPrizeTicketsData, highPrizeResultsData, mainNumbersData);
+        const newCardHtml = createScratchCardHtml(currentScratchIndex, allScratchTicketsData, allResultsData, mainNumbersData);
         container.innerHTML = newCardHtml;
 
         // 새 캔버스 초기화
         setTimeout(() => {
-          initScratchCard(currentHighPrizeIndex);
+          initScratchCard(currentScratchIndex);
         }, 100);
 
         // 진행 상황 업데이트
-        const totalCards = highPrizeTicketsData.length > 0 ? highPrizeTicketsData.length : 1;
-        const displayIdx = Math.min(currentHighPrizeIndex + 1, totalCards + 1);
+        const totalCards = allScratchTicketsData.length > 0 ? allScratchTicketsData.length : 1;
+        const displayIdx = Math.min(currentScratchIndex + 1, totalCards + 1);
         progressEl.textContent = `${displayIdx} / ?`;
 
-        // 고액당첨이 없거나 마지막 꽝 카드를 보여준 경우 버튼 숨기기
-        if (highPrizeTicketsData.length === 0) {
+        // 당첨이 없거나 마지막 꽝 카드를 보여준 경우 버튼 숨기기
+        if (allScratchTicketsData.length === 0) {
           // 꽝만 있는 경우 버튼 숨기기
           nextBtn.style.display = 'none';
-          progressEl.textContent = '고액당첨 없음';
-        } else if (currentHighPrizeIndex >= highPrizeTicketsData.length) {
-          // 모든 고액당첨 확인 후 마지막 꽝 카드
+          progressEl.textContent = '당첨 없음';
+        } else if (currentScratchIndex >= allScratchTicketsData.length) {
+          // 모든 당첨 확인 후 마지막 꽝 카드
           nextBtn.style.display = 'none';
-          progressEl.textContent = `모두 확인 완료! (총 ${highPrizeTicketsData.length}장 고액당첨)`;
+          // 등수별 통계 표시
+          const stats = [];
+          for (let r = 1; r <= 5; r++) {
+            if (allResultsData[r].length > 0) {
+              stats.push(`${r}등: ${allResultsData[r].length}장`);
+            }
+          }
+          progressEl.textContent = `모두 확인 완료! (${stats.join(', ')})`;
         }
       }
 
