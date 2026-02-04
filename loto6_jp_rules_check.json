@@ -1,0 +1,19 @@
+{
+  "jpRules": {
+    "hippariRate": 65,
+    "consecRate": 50.7,
+    "lastDigitRate": 81.9,
+    "avgSum": 134.4,
+    "oddEvenCoreRate": 81.4
+  },
+  "currentStrategy": {
+    "hippariRate": "67.0",
+    "consecRate": "56.4",
+    "lastDigitRate": "77.4",
+    "sum95_170Rate": "84.6",
+    "oddEvenCoreRate": "84.4"
+  },
+  "issues": [
+    "合計 95-170 비율 부족"
+  ]
+}
